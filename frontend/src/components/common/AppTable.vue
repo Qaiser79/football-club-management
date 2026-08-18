@@ -1,4 +1,5 @@
 <script setup>
+const emit = defineEmits(['action'])
 const props = defineProps({
     columns: {
         type: Array,
@@ -65,6 +66,7 @@ const props = defineProps({
                             <slot
                                 name="actions"
                                 :row="row"
+                                :row-index="rowIndex"
                             />
                         </td>
                             
