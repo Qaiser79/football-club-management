@@ -58,6 +58,7 @@ const players = [
         <AppTable
             :columns="columns"
             :rows="players"
+            :actions="true"
             >
             <template #cell-name="{ row }">
                 <div class="flex items-center gap-3">
@@ -91,6 +92,19 @@ const players = [
                 {{ value }}
                 </span>
             </template>
+
+            <template #actions="{ row }">
+                <div class="flex justify-end">
+                    <button
+                    type="button"
+                    class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                    :aria-label="`Actions for ${row.name}`"
+                    >
+                    ⋮
+                    </button>
+                </div>
+            </template>
+
         </AppTable>
     </div>
 </div>

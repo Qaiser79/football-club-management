@@ -8,6 +8,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    actions: {
+        type: Boolean,
+        default: false,
+    },
 })
 </script>
 
@@ -24,6 +28,13 @@ const props = defineProps({
                             class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
                         >
                             {{ column.label }}
+                        </th>
+                        <th
+                            v-if="props.actions"
+                            scope="col"
+                            class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-500"
+                        >
+                            Actions
                         </th>
                     </tr>
                 </thead>
@@ -47,11 +58,21 @@ const props = defineProps({
                                 {{ row[column.key] }}
                             </slot>
                         </td>
+                        <td
+                            v-if="props.actions"
+                            class="whitespace-nowrap px-6 py-4 text-right"
+                        >
+                            <slot
+                                name="actions"
+                                :row="row"
+                            />
+                        </td>
+                            
                     </tr>
 
                     <tr v-if="props.rows.length === 0">
                         <td
-                        :colspan="props.columns.length"
+                        :colspan="props.columns.length + (props.actions ? 1 : 0)"
                         class="px-6 py-12 text-center"
                         >
                         <div class="text-sm font-medium text-gray-900">
