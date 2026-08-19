@@ -11,6 +11,10 @@ class Player(Base):
     team_id: Mapped[int]=mapped_column(ForeignKey("teams.id"))
     name: Mapped[str]=mapped_column(String(100))
     position: Mapped[str]=mapped_column(String(100))
+    status: Mapped[str] = mapped_column(
+        String(20),
+        default="Active"
+    )
     created_at: Mapped[datetime]=mapped_column(DateTime, default=datetime.utcnow)
     team: Mapped["Team"]=relationship(
         back_populates="players"

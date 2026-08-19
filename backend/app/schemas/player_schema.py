@@ -13,6 +13,7 @@ class PlayerCreate(BaseModel):
         min_length=2,
         max_length=100
     )
+    status: str = "Active"
 
 class TeamInfo(BaseModel):
     id: int
@@ -24,6 +25,7 @@ class PlayerResponse(BaseModel):
     team_id: int
     name: str
     position: str
+    status: str
     created_at: datetime
     team: TeamInfo
     model_config={
@@ -49,3 +51,5 @@ class PlayerUpdate(BaseModel):
         min_length=2,
         max_length=100
     )
+
+    status: str = "Active"

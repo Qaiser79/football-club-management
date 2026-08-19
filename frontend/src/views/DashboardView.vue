@@ -1,8 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import AppTable from '@/components/common/AppTable.vue'
 import AppModal from '@/components/common/AppModal.vue'
 import PlayerForm from '@/components/players/PlayerForm.vue'
+import AppPagination from '@/components/common/AppPagination.vue'
 
 const columns = [
     { key: 'name', label: 'Player' },
@@ -42,6 +43,18 @@ const players = ref([
     status: 'Active',
   },
 ])
+
+const currentPage=ref(1)
+const pageSize=2
+
+const totalPages= computed(() => {
+    return Math.ceil(players.value.length/pageSize)
+})
+const paginatedPlayers = computed(() => {
+    const start = (currentPage.value - 1) * pageSize
+
+    return players.value.slice(start, start + pageSize)
+})
 
 const openActionId = ref(null)
 const editingPlayer = ref(null)
@@ -127,7 +140,7 @@ const addPlayer = (formData) => {
     <div class="mt-6">
         <AppTable
             :columns="columns"
-            :rows="players"
+            :rows="paginatedPlayers"
             :actions="true"
             >
             <template #cell-name="{ row }">
@@ -201,7 +214,10 @@ const addPlayer = (formData) => {
             </template>
 
         </AppTable>
-
+        <AppPagination
+            v-model:currentPage="currentPage"
+            :total-pages="totalPages"
+        />
         <AppModal
             :open="!!editingPlayer"
             title="Edit Player"
