@@ -17,8 +17,8 @@ const props = defineProps({
 </script>
 
 <template>
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div class="overflow-x-auto">
+    <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div class="overflow-x-auto overflow-y-visible">
             <table class="min-w-full">
                 <thead class="border-b border-gray-200 bg-gray-50">
                     <tr>
