@@ -1,7 +1,8 @@
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch, onMounted } from 'vue'
 import AppInput from '@/components/common/AppInput.vue'
 import AppSelect from '@/components/common/AppSelect.vue'
+import {getTeams} from '@/services/teamService'
 
 const props = defineProps({
     player: {
@@ -24,16 +25,38 @@ const statusOptions = [
 
 const form = reactive({
     name: '',
-    team: '',
+    team_id: null,
     position: '',
     status: 'Active',
+})
+
+const teamOptions = reactive([])
+const loadTeams = async () => {
+    try {
+        const data = await getTeams()
+
+        teamOptions.splice(
+            0,
+            teamOptions.length,
+            ...data.items.map(team => ({
+                value: team.id,
+                label: team.name,
+            }))
+        )
+    } catch (err) {
+        console.error(err)
+    }
+}
+
+onMounted(()=>{
+    loadTeams()
 })
 
 watch(
     () => props.player,
     (player) => {
         form.name = player?.name ?? ''
-        form.team = player?.team ?? ''
+        form.team_id = player?.team_id ?? null
         form.position = player?.position ?? ''
         form.status = player?.status ?? 'Active'
     },
@@ -70,9 +93,10 @@ const save = () => {
                     Team
                 </label>
 
-                <AppInput
-                    v-model="form.team"
-                    placeholder="Team"
+                <AppSelect
+                    v-model="form.team_id"
+                    :options="teamOptions"
+                    placeholder="Select Team"
                 />
             </div>
 
