@@ -31,7 +31,8 @@ def create_player(
     new_player=Player(
         team_id=player.team_id,
         name=player.name,
-        position=player.position
+        position=player.position,
+        status=player.status
     )
     db.add(new_player)
     db.commit()
@@ -188,7 +189,7 @@ def update_player(
     player.team_id=player_data.team_id
     player.name=player_data.name
     player.position=player_data.position
-
+    player.status=player_data.status
     db.commit()
     db.refresh(player)
 
