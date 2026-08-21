@@ -46,12 +46,17 @@ def create_team(
 def get_teams(
     page: int= Query(1, ge=1),
     limit: int=Query(10, ge=1, le=100),
+    name: str | None = None,
     team_type: str | None = None,
     sort: str | None = None,
     club_id: int | None = None,
     db: Session=Depends(get_db)
 ):
     query=db.query(Team)
+    if name:
+        query = query.filter(
+            func.lower(Team.name).contains(name.lower())
+        )
     offset= (page-1)*limit
     descending=False
     
@@ -162,33 +167,40 @@ def delete_team(
 def update_team(
     team_id: int,
     team_data: TeamUpdate,
-    db: Session=Depends(get_db)
+    db: Session = Depends(get_db)
 ):
-    team=(
+    team = (
         db.query(Team)
-        .filter(Team.id==team_id)
-        .first()
-    )
-    if not team:
-        raise HTTPException(
-            status_code=404,
-            detail="Team not Found"
-        )
-    club=(
-        db.query(Club)
-        .filter(Club.id==team_data.club_id)
+        .filter(Team.id == team_id)
         .first()
     )
 
-    if not club:
+    if not team:
         raise HTTPException(
             status_code=404,
-            detail="Club not found"
+            detail="Team not found"
         )
-    
-    team.club_id=team_data.club_id
-    team.name=team_data.name
-    team.team_type=team_data.team_type
+
+    if team_data.club_id is not None:
+        club = (
+            db.query(Club)
+            .filter(Club.id == team_data.club_id)
+            .first()
+        )
+
+        if not club:
+            raise HTTPException(
+                status_code=404,
+                detail="Club not found"
+            )
+
+        team.club_id = team_data.club_id
+
+    if team_data.name is not None:
+        team.name = team_data.name
+
+    if team_data.team_type is not None:
+        team.team_type = team_data.team_type
 
     db.commit()
     db.refresh(team)
