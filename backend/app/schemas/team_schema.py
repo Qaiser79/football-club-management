@@ -41,13 +41,13 @@ class TeamListResponse(BaseModel):
     pages: int
 
 class TeamUpdate(BaseModel):
-    club_id: int
-    name: str=Field(
+    club_id: int | None = None
+    name: str | None=Field(
         default=None,
         min_length=2,
         max_length=100
     )
-    team_type: str=Field(
+    team_type: str | None =Field(
         default=None,
         min_length=2,
         max_length=100
