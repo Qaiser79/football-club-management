@@ -1,11 +1,12 @@
 <script setup>
 import { ref,onMounted, watch, onUnmounted } from 'vue'
 import AppTable from '@/components/common/AppTable.vue'
-import { getTeams, createTeam } from '@/services/teamService'
+import { getTeams, createTeam,updateTeam, deleteTeam } from '@/services/teamService'
 import AppPagination from '@/components/common/AppPagination.vue'
 import AppSearch from '@/components/common/AppSearch.vue'
 import TeamForm from '@/components/teams/TeamForm.vue'
 import AppModal from '@/components/common/AppModal.vue'
+import AppActionsMenu from '@/components/common/AppActionsMenu.vue'
 
 const columns = [
     {key: 'name', label: 'Team'},
@@ -18,9 +19,10 @@ const search = ref('')
 const loading = ref(false)
 const error = ref(null)
 const currentPage = ref(1)
-const pageSize = ref(1)
+const pageSize = ref(2)
 const totalPages = ref(1)
 const showAddTeam = ref(false)
+const editingTeam = ref(null)
 
 const loadTeams = async () => {
     loading.value = true
@@ -74,6 +76,42 @@ const handlePageChange = (page) => {
     loadTeams()
 }
 
+const handleEdit = (team) =>{
+    editingTeam.value = {...team}
+}
+
+const saveTeam = async (formData) => {
+    try {
+        await updateTeam(
+            editingTeam.value.id,
+            formData
+        )
+        editingTeam.value = null
+        await loadTeams()
+    } catch (err) {
+        console.error(err)
+        error.value = 'Failed to update team'
+    }
+}
+
+const handleDelete = async (team) => {
+    const confirmed = window.confirm(
+        'Are you sure you want to delete ${team.name}?'
+    )
+
+    if (!confirmed) {
+        return
+    }
+
+    try {
+        await deleteTeam(team.id)
+        await loadTeams()
+    } catch (err) {
+        console.error(err)
+        error.value = 'Failed to delete team'
+    }
+}
+
 onMounted(()=> {
     loadTeams()
 })
@@ -86,13 +124,25 @@ onUnmounted(()=>{
 
 <template>
     <div>
-        <h2 class="text-2xl font-bold text-gray-900">
-            Teams
-        </h2>
+        <div class="flex items-start justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">
+                    Teams
+                </h2>
 
-        <p class="mt-2 text-gray-600">
-            Manage teams.
-        </p>
+                <p class="mt-2 text-gray-600">
+                    Manage teams.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                @click="showAddTeam = true"
+            >
+                Add Team
+            </button>
+        </div>
 
         <div
             v-if="error"
@@ -101,13 +151,6 @@ onUnmounted(()=>{
             {{ error }}
         </div>
 
-        <button
-            type="button"
-            class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-            @click="showAddTeam = true"
-        >
-            Add Team
-        </button>
 
         <div
             v-if="loading"
@@ -130,9 +173,18 @@ onUnmounted(()=>{
             <AppTable
                 :columns="columns"
                 :rows="teams"
+                :actions="true"
             >
                 <template #cell-club="{ row }">
                     {{ row.club?.name }}
+                </template>
+                <template #actions="{ row, rowIndex }">
+                    <AppActionsMenu
+                        :row-index="rowIndex"
+                        :total-rows="teams.length"
+                        @edit="handleEdit(row)"
+                        @delete="handleDelete(row)"
+                    />
                 </template>
             </AppTable>
 
@@ -174,7 +226,38 @@ onUnmounted(()=>{
                 </button>
             </template>
         </AppModal>
+        <AppModal
+            :open="!!editingTeam"
+            title= "Edit Team"
+            description="Update team information."
+            @close="editingTeam = null"
+        >
 
+            <TeamForm
+                id="edit-team-form"
+                :team="editingTeam"
+                @save="saveTeam"
+            />
+
+            <template #footer>
+                <button
+                    type="button"
+                    class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                    @click="editingTeam = null"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    form="edit-team-form"
+                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white"
+                >
+                    Save
+                </button>
+            </template>
+
+        </AppModal>
 
     </div>
 </template>
