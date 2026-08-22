@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getClubs } from '@/services/clubService'
 
 const props = defineProps({
     team: {
@@ -11,8 +12,28 @@ const props = defineProps({
 const emit = defineEmits(['save'])
 
 const name = ref(props.team?.name || '')
-const teamType = ref(props.team?.team_type.club_id || '')
+const teamType = ref(props.team?.team_type || '')
 const clubId = ref(props.team?.club_id || '')
+
+const clubs = ref([])
+const loadingClubs = ref(false)
+
+const loadClubs = async () => {
+    loadingClubs.value = true
+
+    try {
+        const data = await getClubs({
+            page: 1,
+            limit: 100,
+        })
+
+        clubs.value = data.items
+    } catch (err) {
+        console.error(err)
+    } finally {
+        loadingClubs.value = false
+    }
+}
 
 const handleSubmit = () => {
     emit('save', {
@@ -22,10 +43,17 @@ const handleSubmit = () => {
     })
 }
 
+onMounted(() => {
+    loadClubs()
+})
 </script>
 
 <template>
-    <form @submit.prevent="handleSubmit" class="space-y-4">
+    <form
+        :id="$attrs.id"
+        @submit.prevent="handleSubmit"
+        class="space-y-4"
+    >
         <div>
             <label class="block text-sm font-medium text-gray-700">
                 Team Name
@@ -55,15 +83,27 @@ const handleSubmit = () => {
 
         <div>
             <label class="block text-sm font-medium text-gray-700">
-                Club ID
+                Club
             </label>
 
-            <input
+            <select
                 v-model="clubId"
-                type="number"
                 required
+                :disabled="loadingClubs"
                 class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            />
+            >
+                <option value="" disabled>
+                    {{ loadingClubs ? 'Loading clubs...' : 'Select a club' }}
+                </option>
+
+                <option
+                    v-for="club in clubs"
+                    :key="club.id"
+                    :value="club.id"
+                >
+                    {{ club.name }}
+                </option>
+            </select>
         </div>
     </form>
 </template>
