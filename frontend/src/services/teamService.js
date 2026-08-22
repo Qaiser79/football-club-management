@@ -44,3 +44,30 @@ export const createTeam = async (teamData) => {
 
     return response.json()
 }
+
+export const updateTeam = async (teamId,teamData)=>{
+    const response = await fetch(`${API_BASE_URL}/team/${teamId}`,{
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(teamData)
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to update team')
+    }
+
+    return response.json()
+}
+
+export const deleteTeam = async (teamId) => {
+    const response = await fetch(`${API_BASE_URL}/team/${teamId}`, {
+        method: 'DELETE'
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to delete team')
+    }
+    return response.json()
+}
