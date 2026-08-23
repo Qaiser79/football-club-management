@@ -52,17 +52,23 @@ def create_match(
 def get_matches(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
-    opponent: str | None= None,
+    search: str | None= None,
     sort: str | None = None,
     db: Session=Depends(get_db)
 ):
     query= db.query(Match)
     descending= False
 
-    if opponent:
-        query=query.filter(
-            Match.opponent_name.ilike(f"%{opponent}%")
+    if search:
+        search_pattern = f"%{search}%"
+
+        query = query.filter(
+            Match.opponent_name.ilike(search_pattern)
+            | Match.competition.ilike(search_pattern)
+            | Match.venue.ilike(search_pattern)
+            | Match.status.ilike(search_pattern)
         )
+    
     if sort and sort.lstrip("-") not in [
         "match_date",
         "opponent_name",

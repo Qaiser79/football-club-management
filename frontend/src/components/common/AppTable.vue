@@ -1,4 +1,6 @@
 <script setup>
+
+
 const emit = defineEmits(['action'])
 const props = defineProps({
     columns: {
@@ -14,6 +16,28 @@ const props = defineProps({
         default: false,
     },
 })
+
+const formatDate = (value) => {
+    if (!value) {
+        return '-'
+    }
+
+    return new Date(value).toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    })
+}
+
+const getValue = (row,key)=>{
+    return key.split('.').reduce(
+        (value,part) => value?.[part],
+        row
+    )
+}
 </script>
 
 <template>
@@ -54,9 +78,13 @@ const props = defineProps({
                             <slot
                                 :name="`cell-${column.key}`"
                                 :row="row"
-                                :value="row[column.key]"
+                                :value="getValue(row, column.key)"
                             >
-                                {{ row[column.key] }}
+                                {{
+                                    column.key === 'match_date'
+                                        ? formatDate(getValue(row, column.key))
+                                        : getValue(row, column.key)
+                                }}
                             </slot>
                         </td>
                         <td
@@ -67,6 +95,7 @@ const props = defineProps({
                                 name="actions"
                                 :row="row"
                                 :row-index="rowIndex"
+                                :total-rows="rows.length"
                             />
                         </td>
                             
