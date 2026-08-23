@@ -35,3 +35,7 @@ class Team(Base):
     players: Mapped[list["Player"]]=relationship(
         back_populates="team"
     )
+
+    matches: Mapped[list["Match"]] = relationship(
+        back_populates="team"
+    )
