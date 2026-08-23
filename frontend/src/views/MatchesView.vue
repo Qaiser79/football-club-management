@@ -17,6 +17,21 @@ const columns = [
     { key: 'status', label: 'Status' },
 ]
 
+const statusClasses = {
+    scheduled: 'bg-blue-50 text-blue-700',
+    completed: 'bg-green-50 text-green-700',
+    cancelled: 'bg-red-50 text-red-700',
+    postponed: 'bg-yellow-50 text-yellow-700',
+}
+
+const formatStatus = (status) => {
+    if (!status) {
+        return '-'
+    }
+
+    return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
 const matches = ref([])
 const search = ref('')
 const currentPage = ref(1)
@@ -176,6 +191,15 @@ onUnmounted(() => {
                 :rows="matches"
                 :actions="true"
             >
+                <!-- Status -->
+                <template #cell-status="{ value }">
+                    <span
+                        class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                        :class="statusClasses[value] || 'bg-gray-100 text-gray-700'"
+                    >
+                        {{ formatStatus(value) }}
+                    </span>
+                </template>
                 <template #actions="{ row, rowIndex, totalRows }">
                     <AppActionsMenu
                         :row-index="rowIndex"
