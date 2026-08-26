@@ -14,6 +14,8 @@ const columns = [
     { key: 'competition', label: 'Competition' },
     { key: 'match_date', label: 'Date' },
     { key: 'venue', label: 'Venue' },
+    { key: 'score', label: 'Score' },
+    { key: 'result', label: 'Result' },
     { key: 'status', label: 'Status' },
 ]
 
@@ -122,6 +124,35 @@ const handlePageChange = (page) => {
     loadMatches()
 }
 
+const getMatchResult = (match) => {
+    if (match.status !== 'completed') {
+        return null
+    }
+
+    if (match.our_score>match.opponent_score) {
+        return 'win'
+    }
+
+    if (match.our_score < match.opponent_score) {
+        return 'lose'
+    }
+
+    return 'draw'
+}
+
+const resultClasses = {
+    win: 'bg-green-50 text-green-700',
+    draw: 'bg-yellow-50 text-yellow-700',
+    loss: 'bg-red-50 text-red-700',
+}
+
+const resultLabels = {
+    win: 'Win',
+    draw: 'Draw',
+    loss: 'Loss',
+}
+
+
 let searchTimeout = null
 watch(search, ()=> {
     clearTimeout(searchTimeout)
@@ -191,6 +222,41 @@ onUnmounted(() => {
                 :rows="matches"
                 :actions="true"
             >
+                <!-- match score -->
+                <template #cell-score="{ row }">
+                    <span
+                        v-if="row.status==='completed' || row.status === 'live'"
+                        class="font-semibold text-gray-900"
+                    >
+                        {{ row.our_scorre }} - {{ row.opponent_score }}
+                    </span>
+
+                    <span
+                        v-else
+                        class="text-gray-400"
+                    >
+                        -
+                    </span>
+                </template>
+
+                <!-- match score -->
+                 <template #cell-result="{row}">
+                    <span
+                        v-if="getMatchResult(row)"
+                        class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                        :class="resultClasses[getMatchResult(row)]"
+                    >
+                        {{ resultLabels[getMatchResult(row)] }}
+                    </span>
+
+                    <span
+                        v-else
+                        class="text-gray-400"
+                    >
+                        —
+                    </span>
+                 </template>
+
                 <!-- Status -->
                 <template #cell-status="{ value }">
                     <span
