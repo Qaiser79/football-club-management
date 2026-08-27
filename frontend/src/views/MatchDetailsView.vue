@@ -3,6 +3,7 @@ import {ref,onMounted} from 'vue'
 import { useRoute } from 'vue-router';
 import { getMatch } from '@/services/matchService';
 import { formatDate } from '@/utils/date';
+import { getMatchResult, matchResultLabels } from '@/utils/match'
 
 const route = useRoute()
 
@@ -15,6 +16,12 @@ const statusClasses = {
     completed: 'bg-green-50 text-green-700',
     cancelled: 'bg-red-50 text-red-700',
     postponed: 'bg-yellow-50 text-yellow-700',
+}
+
+const resultClasses = {
+    win: 'bg-green-50 text-green-700',
+    draw: 'bg-yellow-50 text-yellow-700',
+    loss: 'bg-red-50 text-red-700',
 }
 
 const formatStatus = (status) => {
@@ -64,9 +71,17 @@ onMounted(()=> {
                     Match Details
                 </h2>
 
-                <p class="mt-2 text-gray-600">
-                    {{ match.competition }}
-                </p>
+                <div class="mt-2 flex flex-wrap items-center gap-2">
+                    <p class="text-gray-600">
+                        {{ match.competition }}
+                    </p>
+
+                    <span class="text-gray-300">•</span>
+
+                    <span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                        {{ match.is_home ? 'Home' : 'Away' }}
+                    </span>
+                </div>
             </div>
 
             <button
@@ -78,7 +93,7 @@ onMounted(()=> {
             </button>
         </div>
 
-        <div class="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="mt-6 rounded-xl border border-gray-200 bg-white px-4 py-8 shadow-sm min-[375px]:px-6">
             <div class="text-center">
 
                 <p class="text-sm font-medium text-gray-500">
@@ -92,8 +107,18 @@ onMounted(()=> {
                     </p>
                 </div>
 
-                <div class="text-2xl font-bold text-gray-900">
-                    {{ match.our_score }} - {{ match.opponent_score }}
+                <div class="text-center shrink-0">
+                    <div class="whitespace-nowrap text-2xl font-bold text-gray-900">
+                        {{ match.our_score }} - {{ match.opponent_score }}
+                    </div>
+
+                    <span
+                        v-if="getMatchResult(match)"
+                        class="mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                        :class="resultClasses[getMatchResult(match)]"
+                    >
+                        {{ matchResultLabels[getMatchResult(match)] }}
+                    </span>
                 </div>
 
                 <div>
