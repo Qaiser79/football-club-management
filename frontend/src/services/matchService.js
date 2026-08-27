@@ -75,3 +75,14 @@ export const deleteMatch = async (matchId) => {
 
     return response.json()
 }
+
+export const getMatch = async (matchId) => {
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}`
+    )
+    if (!response.ok) {
+        throw new Error('Failed to fetch match')
+    }
+
+    return response.json()
+}

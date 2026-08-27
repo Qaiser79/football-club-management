@@ -134,7 +134,7 @@ const getMatchResult = (match) => {
     }
 
     if (match.our_score < match.opponent_score) {
-        return 'lose'
+        return 'loss'
     }
 
     return 'draw'
@@ -225,10 +225,11 @@ onUnmounted(() => {
                 <!-- match score -->
                 <template #cell-score="{ row }">
                     <span
-                        v-if="row.status==='completed' || row.status === 'live'"
+                        v-if="row.our_score !== null && row.our_score !== undefined
+                            && row.opponent_score !== null && row.opponent_score !== undefined"
                         class="font-semibold text-gray-900"
                     >
-                        {{ row.our_scorre }} - {{ row.opponent_score }}
+                        {{ row.our_score }} - {{ row.opponent_score }}
                     </span>
 
                     <span
@@ -239,7 +240,7 @@ onUnmounted(() => {
                     </span>
                 </template>
 
-                <!-- match score -->
+                <!-- match result -->
                  <template #cell-result="{row}">
                     <span
                         v-if="getMatchResult(row)"

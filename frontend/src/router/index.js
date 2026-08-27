@@ -40,6 +40,11 @@ const router = createRouter({
       name: 'matches',
       component: MatchesView,
     },
+    {
+      path: '/matches/:matchId',
+      name: 'match-details',
+      component: () => import('@/views/MatchDetailsView.vue')
+    },
   ],
 })
 
