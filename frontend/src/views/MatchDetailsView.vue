@@ -2,6 +2,7 @@
 import {ref,onMounted} from 'vue'
 import { useRoute } from 'vue-router';
 import { getMatch } from '@/services/matchService';
+import { getPlayers } from '@/services/playerService'
 import { formatDate } from '@/utils/date';
 import { getMatchResult, matchResultLabels } from '@/utils/match'
 
@@ -10,6 +11,10 @@ const route = useRoute()
 const match = ref(null)
 const loading = ref(false)
 const error = ref(null)
+
+const players = ref([])
+const playersLoading = ref(false)
+const playersError = ref(null)
 
 const statusClasses = {
     scheduled: 'bg-blue-50 text-blue-700',
@@ -45,8 +50,32 @@ const loadMatch = async ()=> {
         loading.value = false
     }
 }
-onMounted(()=> {
-    loadMatch()
+
+const loadPlayers = async () => {
+    if (!match.value?.team_id) {
+        return
+    }
+
+    playersLoading.value = true
+    playersError.value = null
+
+    try {
+        const data = await getPlayers({
+            teamId: match.value.team_id,
+            limit: 100,
+        })
+        players.value=data.items
+    } catch (err) {
+        console.error(err)
+        playersError.value = 'Failed to load'
+    } finally {
+        playersLoading.value = false
+    }
+}
+
+onMounted(async()=> {
+    await loadMatch()
+    await loadPlayers()
 })
 </script>
 
@@ -131,6 +160,58 @@ onMounted(()=> {
             </div>
         </div>
 
+    </div>
+
+    <div v-if="match" class="mt-6">
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    Match Squad
+                </h3>
+
+                <p class="mt-1 text-sm text-gray-500">
+                    Players available from {{ match.team.name }}
+                </p>
+
+                <div
+                    v-if="playersLoading"
+                    class="mt-4 text-sm text-gray-500"
+                >
+                    Loading players...
+                </div>
+
+                <div
+                    v-else-if="playersError"
+                    class="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700"
+                >
+                    {{ playersError }}
+                </div>
+
+                <div
+                    v-else-if="players.length === 0"
+                    class="mt-4 text-sm text-gray-500"
+                >
+                    No players available for this team.
+                </div>
+
+                <div
+                    v-else
+                    class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                    <div
+                        v-for="player in players"
+                        :key="player.id"
+                        class="rounded-lg border border-gray-200 p-4"
+                    >
+                        <p class="font-medium text-gray-900">
+                            {{ player.name }}
+                        </p>
+
+                        <p class="mt-1 text-sm text-gray-500">
+                            {{ player.position || 'No position' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
     </div>
 
     <div v-if="match">
