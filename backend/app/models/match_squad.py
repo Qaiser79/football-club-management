@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -33,3 +33,6 @@ class MatchSquad(Base):
         default=datetime.utcnow,
         nullable=False,
     )
+
+    match: Mapped["Match"] = relationship()
+    player: Mapped["Player"] = relationship()

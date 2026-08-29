@@ -86,3 +86,35 @@ export const getMatch = async (matchId) => {
 
     return response.json()
 }
+
+export const getMatchSquad = async (matchId) => {
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}/squad`
+    )
+    if (!response.ok) {
+        throw new Error('Failed to fetch match squad')
+    }
+
+    return response.json()
+}
+
+export const updateMatchSquad = async (matchId, playerIds) => {
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}/squad`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                player_ids: playerIds,
+            }),
+        }
+    )
+
+    if (!response.ok) {
+        throw new Error('Failed to update match squad')
+    }
+
+    return response.json()
+}

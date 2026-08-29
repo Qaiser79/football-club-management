@@ -211,8 +211,10 @@ onMounted(async()=> {
 
     <MatchSquad
         v-if="match && activeSection === 'squad'"
+        :match-id="match.id"
         :players="players"
         :team-name="match.team.name"
+        :match-status="match.status"
         :loading="playersLoading"
         :error="playersError"
     />

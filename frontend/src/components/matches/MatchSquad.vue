@@ -1,7 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getMatchSquad, updateMatchSquad } from '@/services/matchService'
 
 const props = defineProps({
+    matchId: {
+        type: Number,
+        required: true,
+    },
     players: {
         type: Array,
         default: ()=>[],
@@ -19,16 +24,37 @@ const props = defineProps({
         default: null,
     }
 })
-const emit = defineEmits(['update:selected-player-ids'])
 
 const selectedPlayerIds = ref([])
+const saving = ref(false)
+const saveError = ref(null)
+const saveSuccess = ref(false)
+const squadLoading = ref(false)
+const squadError = ref(null)
+const squadExists = ref(false)
+
+const loadSquad = async () => {
+    squadLoading.value = true
+    squadError.value = null
+
+    try {
+        const data = await getMatchSquad(props.matchId)
+
+        selectedPlayerIds.value = data.player_ids
+        squadExists.value = data.player_ids.length > 0
+    } catch (err) {
+        console.error(err)
+        squadError.value = 'Failed to load match squad'
+    } finally {
+        squadLoading.value = false
+    }
+}
 
 const togglePlayer = (playerId) => {
     const index = selectedPlayerIds.value.indexOf(playerId)
 
     if (index !==-1) {
         selectedPlayerIds.value.splice(index, 1)
-        emit('update:selected-player-idd',selectedPlayerIds.value)
         return
     }
 
@@ -37,8 +63,32 @@ const togglePlayer = (playerId) => {
     }
 
     selectedPlayerIds.value.push(playerId)
-    emit('update:selected-player-idd',selectedPlayerIds.value)
 }
+
+const saveSquad = async () => {
+    saving.value = true
+    saveError.value = null
+    saveSuccess.value = false
+
+    try {
+        await updateMatchSquad(
+            props.matchId,
+            selectedPlayerIds.value
+        )
+        squadExists.value = selectedPlayerIds.value.length > 0
+        saveSuccess.value = true
+    } catch (err) {
+        console.error(err)
+        saveError.value = 'Failed to save match squad'
+    } finally {
+         saving.value = false
+    }
+}
+
+onMounted(()=>{
+    loadSquad()
+})
+
 </script>
 
 <template>
@@ -102,6 +152,38 @@ const togglePlayer = (playerId) => {
                     </p>
                 </div>
             </div>
+
+            <div
+                v-if="props.players.length > 0"
+                class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <div class="text-sm text-gray-500">
+                    {{ selectedPlayerIds.length }} of 15 players selected
+                </div>
+
+                <button
+                    type="button"
+                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                    :disabled="saving || selectedPlayerIds.length === 0"
+                    @click="saveSquad"
+                >
+                    {{ saving ? 'Saving...' : squadExists ? 'Update Squad' : 'Save Squad' }}
+                </button>
+            </div>
+
+            <p
+                v-if="saveSuccess"
+                class="mt-3 text-sm text-green-600"
+            >
+                Squad saved successfully.
+            </p>
+
+            <p
+                v-if="saveError"
+                class="mt-3 text-sm text-red-600"
+            >
+                {{ saveError }}
+            </p>
 
         </div>
 
