@@ -5,6 +5,7 @@ import { getMatch } from '@/services/matchService';
 import { getPlayers } from '@/services/playerService'
 import { formatDate } from '@/utils/date';
 import { getMatchResult, matchResultLabels } from '@/utils/match'
+import MatchSquad from '@/components/matches/MatchSquad.vue';
 
 const route = useRoute()
 
@@ -64,6 +65,7 @@ const loadPlayers = async () => {
             teamId: match.value.team_id,
             limit: 100,
         })
+        console.log('PLAYERS:',data)
         players.value=data.items
     } catch (err) {
         console.error(err)
@@ -161,58 +163,13 @@ onMounted(async()=> {
         </div>
 
     </div>
-
-    <div v-if="match" class="mt-6">
-            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                <h3 class="text-lg font-semibold text-gray-900">
-                    Match Squad
-                </h3>
-
-                <p class="mt-1 text-sm text-gray-500">
-                    Players available from {{ match.team.name }}
-                </p>
-
-                <div
-                    v-if="playersLoading"
-                    class="mt-4 text-sm text-gray-500"
-                >
-                    Loading players...
-                </div>
-
-                <div
-                    v-else-if="playersError"
-                    class="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700"
-                >
-                    {{ playersError }}
-                </div>
-
-                <div
-                    v-else-if="players.length === 0"
-                    class="mt-4 text-sm text-gray-500"
-                >
-                    No players available for this team.
-                </div>
-
-                <div
-                    v-else
-                    class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-                >
-                    <div
-                        v-for="player in players"
-                        :key="player.id"
-                        class="rounded-lg border border-gray-200 p-4"
-                    >
-                        <p class="font-medium text-gray-900">
-                            {{ player.name }}
-                        </p>
-
-                        <p class="mt-1 text-sm text-gray-500">
-                            {{ player.position || 'No position' }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-    </div>
+        <MatchSquad
+        v-if="match"
+        :players="players"
+        :team-name="match.team.name"
+        :loading="playersLoading"
+        :error="playersError"
+    />
 
     <div v-if="match">
         <div class="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
