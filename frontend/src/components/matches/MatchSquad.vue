@@ -111,12 +111,36 @@ onMounted(()=>{
                 Match Squad
             </h3>
             <p class="mt-1 text-sm text-gray-500">
-                Players available from {{ props.teamName }}
+                {{ squadEditable
+                    ? `Players available from ${props.teamName}`
+                    : `Match squad for ${props.teamName}`
+                }}
+            </p>
+
+            <p
+                v-if="!squadEditable"
+                class="mt-2 text-sm text-gray-500"
+            >
+                Squad is locked because this match is {{ props.matchStatus.toLowerCase() }}.
             </p>
 
             <div class="mt-3 flex items-center justify-between">
                 <p class="text-sm font-medium text-gray-700">
-                    Selected: {{ selectedPlayerIds.length }}/15
+                    Squad: {{ selectedPlayerIds.length }}/15
+                </p>
+
+                <p
+                    v-if="squadEditable && selectedPlayerIds.length < 11"
+                    class="text-sm text-gray-500"
+                >
+                    Select at least 11 players
+                </p>
+
+                <p
+                    v-else-if="squadEditable"
+                    class="text-sm text-green-600"
+                >
+                    Minimum squad requirement met
                 </p>
             </div>
 
