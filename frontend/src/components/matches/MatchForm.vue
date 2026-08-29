@@ -196,6 +196,10 @@ onMounted(()=>{
                     Scheduled
                 </option>
 
+                <option value="live">
+                    Live
+                </option>
+
                 <option value="completed">
                     Completed
                 </option>
