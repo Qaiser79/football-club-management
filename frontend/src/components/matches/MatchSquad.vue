@@ -1,4 +1,6 @@
 <script setup>
+import { ref } from 'vue'
+
 const props = defineProps({
     players: {
         type: Array,
@@ -17,6 +19,26 @@ const props = defineProps({
         default: null,
     }
 })
+const emit = defineEmits(['update:selected-player-ids'])
+
+const selectedPlayerIds = ref([])
+
+const togglePlayer = (playerId) => {
+    const index = selectedPlayerIds.value.indexOf(playerId)
+
+    if (index !==-1) {
+        selectedPlayerIds.value.splice(index, 1)
+        emit('update:selected-player-idd',selectedPlayerIds.value)
+        return
+    }
+
+    if (selectedPlayerIds.value.length >= 15) {
+        return
+    }
+
+    selectedPlayerIds.value.push(playerId)
+    emit('update:selected-player-idd',selectedPlayerIds.value)
+}
 </script>
 
 <template>
@@ -28,6 +50,12 @@ const props = defineProps({
             <p class="mt-1 text-sm text-gray-500">
                 Players available from {{ props.teamName }}
             </p>
+
+            <div class="mt-3 flex items-center justify-between">
+                <p class="text-sm font-medium text-gray-700">
+                    Selected: {{ selectedPlayerIds.length }}/15
+                </p>
+            </div>
 
             <div
                 v-if="props.loading"
@@ -57,8 +85,14 @@ const props = defineProps({
                 <div
                     v-for="player in props.players"
                     :key="player.id"
-                    class="rounded-lg border border-gray-200 p-4"
-                >
+                    class="cursor-pointer rounded-lg border p-4 transition"
+                    :class="
+                        selectedPlayerIds.includes(player.id)
+                            ? 'border-gray-900 bg-gray-50'
+                            : 'border-gray-200 bg-white hover:bg-gray-50'
+                    "
+                    @click = "togglePlayer(player.id)"
+                    >
                     <p class="font-medium text-gray-900">
                         {{ player.name }}
                     </p>

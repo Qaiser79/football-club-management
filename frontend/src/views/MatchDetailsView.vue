@@ -9,6 +9,8 @@ import MatchSquad from '@/components/matches/MatchSquad.vue';
 
 const route = useRoute()
 
+const activeSection = ref('overview')
+
 const match = ref(null)
 const loading = ref(false)
 const error = ref(null)
@@ -161,10 +163,54 @@ onMounted(async()=> {
 
             </div>
         </div>
-
+        
     </div>
-        <MatchSquad
-        v-if="match"
+
+    <div v-if="match" class="mt-6 border-b border-gray-200">
+        <nav class="flex gap-6 overflow-x-auto">
+            <button
+                type="button"
+                class="whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium"
+                :class="
+                    activeSection === 'overview'
+                        ? 'border-gray-900 text-gray-900'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                "
+                @click="activeSection = 'overview'"
+            >
+                Overview
+            </button>
+
+            <button
+                type="button"
+                class="whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium"
+                :class="
+                    activeSection === 'squad'
+                        ? 'border-gray-900 text-gray-900'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                "
+                @click="activeSection = 'squad'"
+            >
+                Squad
+            </button>
+
+            <button
+                type="button"
+                class="whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium"
+                :class="
+                    activeSection === 'events'
+                        ? 'border-gray-900 text-gray-900'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                "
+                @click="activeSection = 'events'"
+            >
+                Events
+            </button>
+        </nav>
+    </div>
+
+    <MatchSquad
+        v-if="match && activeSection === 'squad'"
         :players="players"
         :team-name="match.team.name"
         :loading="playersLoading"
