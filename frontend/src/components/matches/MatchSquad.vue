@@ -1,11 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { getMatchSquad, updateMatchSquad } from '@/services/matchService'
 
 const props = defineProps({
     matchId: {
         type: Number,
         required: true,
+    },
+    matchStatus: {
+        type: String,
+        default: 'scheduled',
     },
     players: {
         type: Array,
@@ -33,6 +37,10 @@ const squadLoading = ref(false)
 const squadError = ref(null)
 const squadExists = ref(false)
 
+const squadEditable = computed(()=> {
+    return props.matchStatus?.toLowerCase() === 'scheduled'
+})
+
 const loadSquad = async () => {
     squadLoading.value = true
     squadError.value = null
@@ -51,6 +59,11 @@ const loadSquad = async () => {
 }
 
 const togglePlayer = (playerId) => {
+
+    if (!squadEditable.value){
+        return
+    }
+
     const index = selectedPlayerIds.value.indexOf(playerId)
 
     if (index !==-1) {
@@ -135,12 +148,15 @@ onMounted(()=>{
                 <div
                     v-for="player in props.players"
                     :key="player.id"
-                    class="cursor-pointer rounded-lg border p-4 transition"
-                    :class="
+                    class="rounded-lg border p-4 transition"
+                    :class="[
                         selectedPlayerIds.includes(player.id)
                             ? 'border-gray-900 bg-gray-50'
-                            : 'border-gray-200 bg-white hover:bg-gray-50'
-                    "
+                            : 'border-gray-200 bg-white hover:bg-gray-50',
+                        squadEditable
+                            ? 'cursor-pointer hover:bg-gray-50'
+                            : 'cursor-default opacity-75'
+                        ]"
                     @click = "togglePlayer(player.id)"
                     >
                     <p class="font-medium text-gray-900">
@@ -164,7 +180,7 @@ onMounted(()=>{
                 <button
                     type="button"
                     class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-                    :disabled="saving || selectedPlayerIds.length === 0"
+                    :disabled="saving || selectedPlayerIds.length < 11"
                     @click="saveSquad"
                 >
                     {{ saving ? 'Saving...' : squadExists ? 'Update Squad' : 'Save Squad' }}

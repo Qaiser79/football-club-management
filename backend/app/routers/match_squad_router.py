@@ -59,12 +59,24 @@ def update_match_squad(
             detail="Match not found"
         )
 
+    if match.status.lower() != "scheduled":
+        raise HTTPException(
+            status_code=400,
+            detail = "Match squad can only be changed for scheduled matches"
+        )
+
     player_ids = squad_data.player_ids
 
     if len(player_ids) > 15:
         raise HTTPException(
             status_code=400,
             detail="A match squad cannot contain more than 15 players"
+        )
+
+    if len(player_ids) <11:
+        raise HTTPException(
+            status_code=400,
+            detail = "A match squad must contain at least 11 players"
         )
 
     if len(player_ids) != len(set(player_ids)):
