@@ -228,6 +228,7 @@ onMounted(async()=> {
         :players="players"
         :squad-player-ids="selectedPlayerIds"
         :match-status="match.status"
+        @event-created="loadMatch"
     />
 
     <div v-if="match">

@@ -6,6 +6,11 @@ class MatchEventCreate(BaseModel):
     minute: int | None = None
 
 
+class MatchEventUpdate(BaseModel):
+    player_id: int
+    event_type: str
+    minute: int | None = None
+
 class MatcheventPlayer(BaseModel):
     id: int
     name: str

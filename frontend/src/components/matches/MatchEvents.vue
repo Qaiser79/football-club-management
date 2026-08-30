@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getMatchEvents,createMatchEvent } from '@/services/matchService'
+import { getMatchEvents,createMatchEvent, deleteMatchEvent, updateMatchEvent } from '@/services/matchService'
+import AppActionsMenue from '@/components/common/AppActionsMenu.vue'
 
 const props = defineProps({
     matchId: {
@@ -30,6 +31,14 @@ const eventMinute = ref('')
 const saving = ref(false)
 const saveError = ref(null)
 const saveSuccess = ref(false)
+const editingEventId = ref(null)
+const editPlayerId = ref('')
+const editEventType = ref('')
+const editEventMinute = ref('')
+const updating = ref(false)
+const updateError = ref(null)
+
+
 
 const eventLabels = {
     goal: 'Goal',
@@ -65,6 +74,8 @@ const loadEvents = async () => {
 }
 
 
+const emit = defineEmits(['event-created'])
+
 const addEvent = async () => {
     saving.value = true
     saveError.value = null
@@ -87,12 +98,37 @@ const addEvent = async () => {
         eventMinute.value = ''
 
         await loadEvents()
+        emit('event-created')
     } catch (err) {
         console.error(err)
         saveError.value = 'Failed to add event'
     } finally {
         saving.value = false
     }
+}
+
+const deleteEvent = async (eventId) => {
+    try {
+        await deleteMatchEvent(
+            props.matchId,
+            eventId
+        )
+
+        await loadEvents()
+
+        emit('event-created')
+    } catch (err) {
+        console.error(err)
+        saveError.value = 'Failed to delete event'
+    }
+}
+
+const startEdit = (event) => {
+    editingEventId.value = event.id
+    editPlayerId.value = event.player_id
+    editEventType.value = event.event_type
+    editEventMinute.value = event.minute ?? ''
+    updateError.value = null
 }
 
 onMounted(()=>{
@@ -240,7 +276,7 @@ onMounted(()=>{
                 class="mt-4 space-y-3"
             >
                 <div
-                    v-for="event in events"
+                    v-for="(event, index) in events"
                     :key="event.id"
                     class="flex items-center gap-4 rounded-lg border border-gray-200 p-4"
                 >
@@ -248,7 +284,7 @@ onMounted(()=>{
                         {{ event.minute ? `${event.minute}'` : '-' }}
                     </div>
 
-                    <div>
+                    <div class="flex-1">
                         <p class="font-medium text-gray-900">
                             {{ event.player.name }}
                         </p>
@@ -258,7 +294,14 @@ onMounted(()=>{
                         </p>
                         
                     </div>
+
+                    <AppActionsMenue
+                        :row-index="index"
+                        :total-rows="events.length"
+                        @delete="deleteEvent(event.id)"
+                    />
                 </div>
+
             </div>
 
         </div>

@@ -149,3 +149,37 @@ export const createMatchEvent = async (matchId, eventData)=>{
 
     return response.json()
 }
+
+export const deleteMatchEvent = async (matchId, eventId) => {
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}/events/${eventId}`,
+        {
+            method: 'DELETE',
+        }
+    )
+
+    if (!response.ok) {
+        throw new Error('Failed to delete match event')
+    }
+
+    return response.json()
+}
+
+export const updateMatchEvent = async (matchId, eventId, eventData) => {
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}/events/${eventId}`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(eventData),
+        }
+    )
+
+    if (!response.ok) {
+        throw new Error('Failed to update match event')
+    }
+
+    return response.json()
+}
