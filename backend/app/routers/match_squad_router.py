@@ -35,8 +35,11 @@ def get_match_squad(
     )
 
     return {
-        "player_ids": [
-            item.player_id
+        "players": [
+            {
+                "player_id": item.player_id,
+                "is_starter": item.is_starter,
+            }
             for item in squad
         ]
     }
@@ -65,19 +68,36 @@ def update_match_squad(
             detail = "Match squad can only be changed for scheduled matches"
         )
 
-    player_ids = squad_data.player_ids
 
-    if len(player_ids) > 15:
+    players_data = squad_data.players
+    if len(players_data) > 15:
         raise HTTPException(
             status_code=400,
             detail="A match squad cannot contain more than 15 players"
         )
 
-    if len(player_ids) <11:
+    if len(players_data) <11:
         raise HTTPException(
             status_code=400,
             detail = "A match squad must contain at least 11 players"
         )
+
+    starter_count = sum(
+        1
+        for item in players_data
+        if item.is_starter
+    )
+
+    if starter_count != 11:
+        raise HTTPException(
+            status_code=400,
+            detail="A match squad must contain exactly 11 starters"
+        )
+
+    player_ids = [
+        item.player_id
+        for item in players_data
+    ]
 
     if len(player_ids) != len(set(player_ids)):
         raise HTTPException(
@@ -113,16 +133,17 @@ def update_match_squad(
         MatchSquad.match_id == match_id
     ).delete()
 
-    for player_id in player_ids:
+    for item in players_data:
         db.add(
             MatchSquad(
                 match_id=match_id,
-                player_id=player_id,
+                player_id=item.player_id,
+                is_starter=item.is_starter
             )
         )
 
     db.commit()
 
     return {
-        "player_ids": player_ids
+        "players": players_data
     }

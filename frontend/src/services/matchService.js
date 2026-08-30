@@ -98,7 +98,7 @@ export const getMatchSquad = async (matchId) => {
     return response.json()
 }
 
-export const updateMatchSquad = async (matchId, playerIds) => {
+export const updateMatchSquad = async (matchId, squadData) => {
     const response = await fetch(
         `${API_BASE_URL}/match/${matchId}/squad`,
         {
@@ -106,9 +106,7 @@ export const updateMatchSquad = async (matchId, playerIds) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                player_ids: playerIds,
-            }),
+            body: JSON.stringify(squadData),
         }
     )
 

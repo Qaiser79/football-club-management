@@ -2,9 +2,10 @@ from pydantic import BaseModel
 
 class MatchSquadPlayer(BaseModel):
     player_id: int
+    is_starter: bool
 
 class MatchSquadResponse(BaseModel):
-    player_ids: list[int]
+    players: list[MatchSquadPlayer]
 
 class MatchSquadUpdate(BaseModel):
-    player_ids: list[int]
+    players: list[MatchSquadPlayer]

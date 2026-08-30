@@ -36,13 +36,43 @@ const props = defineProps({
 
 const emit = defineEmits(['update:selected-player-ids'])
 
-const selectedPlayerIds = ref([])
+const selectedPlayers = ref([])
 const saving = ref(false)
 const saveError = ref(null)
 const saveSuccess = ref(false)
 const squadLoading = ref(false)
 const squadError = ref(null)
 const squadExists = ref(false)
+
+const starterCount = computed(() =>
+    selectedPlayers.value.filter(
+        player => player.is_starter
+    ).length
+)
+
+const substituteCount = computed(() =>
+    selectedPlayers.value.length - starterCount.value
+)
+
+const toggleStarter = (playerId) => {
+    if (!squadEditable.value) {
+        return
+    }
+
+    const player = selectedPlayers.value.find(
+        item => item.player_id === playerId
+    )
+
+    if (!player) {
+        return
+    }
+
+    if (!player.is_starter && starterCount.value >= 11) {
+        return
+    }
+
+    player.is_starter = !player.is_starter
+}
 
 const squadEditable = computed(()=> {
     return props.matchStatus?.toLowerCase() === 'scheduled'
@@ -55,12 +85,12 @@ const loadSquad = async () => {
     try {
         const data = await getMatchSquad(props.matchId)
 
-        selectedPlayerIds.value = data.player_ids
+        selectedPlayers.value = data.players
         emit(
             'update:selected-player-ids',
-            selectedPlayerIds.value
+            selectedPlayers.value
         )
-        squadExists.value = data.player_ids.length > 0
+        squadExists.value = data.players.length > 0
     } catch (err) {
         console.error(err)
         squadError.value = 'Failed to load match squad'
@@ -75,25 +105,30 @@ const togglePlayer = (playerId) => {
         return
     }
 
-    const index = selectedPlayerIds.value.indexOf(playerId)
+    const index = selectedPlayers.value.findIndex(
+        player => player.player_id === playerId
+    )
 
     if (index !==-1) {
-        selectedPlayerIds.value.splice(index, 1)
+        selectedPlayers.value.splice(index, 1)
         emit(
             'update:selected-player-ids',
-            selectedPlayerIds.value
+            selectedPlayers.value
         )
         return
     }
 
-    if (selectedPlayerIds.value.length >= 15) {
+    if (selectedPlayers.value.length >= 15) {
         return
     }
 
-    selectedPlayerIds.value.push(playerId)
+    selectedPlayers.value.push({
+        player_id: playerId,
+        is_starter: false,
+    })
     emit(
         'update:selected-player-ids',
-        selectedPlayerIds.value
+        selectedPlayers.value
     )
 }
 
@@ -105,9 +140,11 @@ const saveSquad = async () => {
     try {
         await updateMatchSquad(
             props.matchId,
-            selectedPlayerIds.value
+            {
+                players: selectedPlayers.value,
+            }
         )
-        squadExists.value = selectedPlayerIds.value.length > 0
+        squadExists.value = selectedPlayers.value.length > 0
         saveSuccess.value = true
     } catch (err) {
         console.error(err)
@@ -145,21 +182,28 @@ onMounted(()=>{
 
             <div class="mt-3 flex items-center justify-between">
                 <p class="text-sm font-medium text-gray-700">
-                    Squad: {{ selectedPlayerIds.length }}/15
+                    Squad: {{ selectedPlayers.length }}/15
                 </p>
 
                 <p
-                    v-if="squadEditable && selectedPlayerIds.length < 11"
+                    v-if="squadEditable && selectedPlayers.length < 11"
                     class="text-sm text-gray-500"
                 >
                     Select at least 11 players
                 </p>
 
                 <p
+                    v-else-if="squadEditable && starterCount < 11"
+                    class="text-sm text-gray-500"
+                >
+                    Select 11 starters
+                </p>
+
+                <p
                     v-else-if="squadEditable"
                     class="text-sm text-green-600"
                 >
-                    Minimum squad requirement met
+                    Starting XI selected
                 </p>
             </div>
 
@@ -188,28 +232,58 @@ onMounted(()=>{
                 v-else
                 class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
             >
-                <div
-                    v-for="player in props.players"
-                    :key="player.id"
-                    class="rounded-lg border p-4 transition"
-                    :class="[
-                        selectedPlayerIds.includes(player.id)
-                            ? 'border-gray-900 bg-gray-50'
-                            : 'border-gray-200 bg-white hover:bg-gray-50',
-                        squadEditable
-                            ? 'cursor-pointer hover:bg-gray-50'
-                            : 'cursor-default opacity-75'
-                        ]"
-                    @click = "togglePlayer(player.id)"
-                    >
-                    <p class="font-medium text-gray-900">
-                        {{ player.name }}
-                    </p>
+            <div
+                v-for="player in props.players"
+                :key="player.id"
+                class="rounded-lg border p-4 transition"
+                :class="[
+                    selectedPlayers.some(
+                        selected => selected.player_id === player.id
+                    )
+                        ? 'border-gray-900 bg-gray-50'
+                        : 'border-gray-200 bg-white hover:bg-gray-50',
+                    squadEditable
+                        ? 'cursor-pointer hover:bg-gray-50'
+                        : 'cursor-default opacity-75'
+                ]"
+                @click="togglePlayer(player.id)"
+            >
+                <p class="font-medium text-gray-900">
+                    {{ player.name }}
+                </p>
 
-                    <p class="mt-1 text-sm text-gray-500">
-                        {{ player.position || 'No position' }}
-                    </p>
+                <p class="mt-1 text-sm text-gray-500">
+                    {{ player.position || 'No position' }}
+                </p>
+
+                <div
+                    v-if="selectedPlayers.some(
+                        selected => selected.player_id === player.id
+                    )"
+                    class="mt-3"
+                >
+                    <button
+                        type="button"
+                        class="rounded-lg border px-3 py-1 text-xs font-medium"
+                        :class="
+                            selectedPlayers.find(
+                                selected => selected.player_id === player.id
+                            )?.is_starter
+                                ? 'border-gray-900 bg-gray-900 text-white'
+                                : 'border-gray-300 bg-white text-gray-700'
+                        "
+                        @click.stop="toggleStarter(player.id)"
+                    >
+                        {{
+                            selectedPlayers.find(
+                                selected => selected.player_id === player.id
+                            )?.is_starter
+                                ? '✓ Starter'
+                                : 'Substitute'
+                        }}
+                    </button>
                 </div>
+            </div>
             </div>
 
             <div
@@ -217,13 +291,17 @@ onMounted(()=>{
                 class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
             >
                 <div class="text-sm text-gray-500">
-                    {{ selectedPlayerIds.length }} of 15 players selected
+                    {{ selectedPlayers.length }} of 15 players selected
                 </div>
 
                 <button
                     type="button"
                     class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-                    :disabled="saving || selectedPlayerIds.length < 11"
+                    :disabled="
+                        saving ||
+                        selectedPlayers.length < 11 ||
+                        starterCount < 11
+                    "
                     @click="saveSquad"
                 >
                     {{ saving ? 'Saving...' : squadExists ? 'Update Squad' : 'Save Squad' }}
