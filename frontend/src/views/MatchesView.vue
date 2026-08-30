@@ -8,6 +8,7 @@ import MatchForm from '@/components/matches/MatchForm.vue'
 import AppModal from '@/components/common/AppModal.vue'
 import AppActionsMenu from '@/components/common/AppActionsMenu.vue'
 
+
 const columns = [
     { key: 'team.name', label: 'Our Team' },
     { key: 'opponent_name', label: 'Opponent' },

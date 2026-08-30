@@ -118,3 +118,34 @@ export const updateMatchSquad = async (matchId, playerIds) => {
 
     return response.json()
 }
+
+export const getMatchEvents = async (matchId) => {
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}/events`
+    )
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch match events')
+    }
+
+    return response.json()
+}
+
+export const createMatchEvent = async (matchId, eventData)=>{
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}/events`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(eventData),
+        }
+    )
+
+    if (!response.ok) {
+        throw new Error('Failed to create match event')
+    }
+
+    return response.json()
+}

@@ -38,7 +38,7 @@ def create_match_event(
     if match.status.lower() !=  "live":
         raise HTTPException(
             status_code=400,
-            detail="Events can only be added to scheduled matches"
+            detail="Events can only be added to live matches"
         )
 
     player = (
@@ -104,7 +104,7 @@ def create_match_event(
 
     return new_event
 
-@router.get("/{match_id/events}", response_model=list[MatchEventResponse])
+@router.get("/{match_id}/events", response_model=list[MatchEventResponse])
 def get_match_events(
     match_id: int,
     db: Session = Depends(get_db)

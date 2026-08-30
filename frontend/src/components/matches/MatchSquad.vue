@@ -11,6 +11,11 @@ const props = defineProps({
         type: String,
         default: 'scheduled',
     },
+
+    selectedPlayerIds: {
+        type: Array,
+        default: () => [],
+    },
     players: {
         type: Array,
         default: ()=>[],
@@ -28,6 +33,8 @@ const props = defineProps({
         default: null,
     }
 })
+
+const emit = defineEmits(['update:selected-player-ids'])
 
 const selectedPlayerIds = ref([])
 const saving = ref(false)
@@ -49,6 +56,10 @@ const loadSquad = async () => {
         const data = await getMatchSquad(props.matchId)
 
         selectedPlayerIds.value = data.player_ids
+        emit(
+            'update:selected-player-ids',
+            selectedPlayerIds.value
+        )
         squadExists.value = data.player_ids.length > 0
     } catch (err) {
         console.error(err)
@@ -68,6 +79,10 @@ const togglePlayer = (playerId) => {
 
     if (index !==-1) {
         selectedPlayerIds.value.splice(index, 1)
+        emit(
+            'update:selected-player-ids',
+            selectedPlayerIds.value
+        )
         return
     }
 
@@ -76,6 +91,10 @@ const togglePlayer = (playerId) => {
     }
 
     selectedPlayerIds.value.push(playerId)
+    emit(
+        'update:selected-player-ids',
+        selectedPlayerIds.value
+    )
 }
 
 const saveSquad = async () => {

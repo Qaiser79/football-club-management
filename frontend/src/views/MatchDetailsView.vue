@@ -6,6 +6,7 @@ import { getPlayers } from '@/services/playerService'
 import { formatDate } from '@/utils/date';
 import { getMatchResult, matchResultLabels } from '@/utils/match'
 import MatchSquad from '@/components/matches/MatchSquad.vue';
+import MatchEvents from '@/components/matches/MatchEvents.vue'
 
 const route = useRoute()
 
@@ -18,6 +19,8 @@ const error = ref(null)
 const players = ref([])
 const playersLoading = ref(false)
 const playersError = ref(null)
+
+const selectedPlayerIds = ref([])
 
 const statusClasses = {
     scheduled: 'bg-blue-50 text-blue-700',
@@ -217,6 +220,14 @@ onMounted(async()=> {
         :match-status="match.status"
         :loading="playersLoading"
         :error="playersError"
+        @update:selected-player-ids="selectedPlayerIds = $event"
+    />
+    <MatchEvents
+        v-if="match && activeSection === 'events'"
+        :match-id="match.id"
+        :players="players"
+        :squad-player-ids="selectedPlayerIds"
+        :match-status="match.status"
     />
 
     <div v-if="match">
