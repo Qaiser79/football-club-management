@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { getMatchEvents,createMatchEvent, deleteMatchEvent, updateMatchEvent } from '@/services/matchService'
 import AppActionsMenue from '@/components/common/AppActionsMenu.vue'
+import AppModal from '@/components/common/AppModal.vue'
 
 const props = defineProps({
     matchId: {
@@ -31,7 +32,7 @@ const eventMinute = ref('')
 const saving = ref(false)
 const saveError = ref(null)
 const saveSuccess = ref(false)
-const editingEventId = ref(null)
+const editingEvent = ref(null)
 const editPlayerId = ref('')
 const editEventType = ref('')
 const editEventMinute = ref('')
@@ -124,11 +125,53 @@ const deleteEvent = async (eventId) => {
 }
 
 const startEdit = (event) => {
-    editingEventId.value = event.id
+    editingEvent.value = event
     editPlayerId.value = event.player_id
     editEventType.value = event.event_type
     editEventMinute.value = event.minute ?? ''
     updateError.value = null
+}
+
+const cancelEdit = () => {
+    editingEvent.value = null
+    editPlayerId.value = ''
+    editEventType.value = ''
+    editEventMinute.value = ''
+    updateError.value = null
+}
+
+const updateEvent = async () => {
+    if (!editingEvent.value) {
+        return
+    }
+
+    updating.value = true
+    updateError.value = null
+
+    try {
+        await updateMatchEvent(
+            props.matchId,
+            editingEvent.value.id,
+            {
+                player_id: Number(editPlayerId.value),
+                event_type: editEventType.value,
+                minute: editEventMinute.value
+                    ? Number(editEventMinute.value)
+                    : null,
+            }
+        )
+
+        await loadEvents()
+
+        cancelEdit()
+
+        emit('event-created')
+    } catch (err) {
+        console.error(err)
+        updateError.value = 'Failed to update event'
+    } finally {
+        updating.value = false
+    }
 }
 
 onMounted(()=>{
@@ -296,8 +339,10 @@ onMounted(()=>{
                     </div>
 
                     <AppActionsMenue
+                        v-if="props.matchStatus?.toLocaleLowerCase()==='live'"
                         :row-index="index"
                         :total-rows="events.length"
+                        @edit="startEdit(event)"
                         @delete="deleteEvent(event.id)"
                     />
                 </div>
@@ -306,4 +351,95 @@ onMounted(()=>{
 
         </div>
     </div>
+
+    <AppModal
+        :open="!!editingEvent"
+        title="Edit Match Event"
+        description="Update the event details"
+        @close="cancelEdit"
+    >
+        <div class="space-y-4">
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    Player
+                </label>
+
+                <select
+                    v-model="editPlayerId"
+                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                >
+                    <option
+                        v-for="player in props.players.filter(
+                            player => props.squadPlayerIds.includes(player.id)
+                        )"
+                        :key="player.id"
+                        :value="player.id"
+                    >
+                        {{ player.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    Event Type
+                </label>
+
+                <select
+                    v-model="editEventType"
+                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                >
+                    <option
+                        v-for="eventType in eventTypes"
+                        :key="eventType.value"
+                        :value="eventType.value"
+                    >
+                        {{ eventType.label }}
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    Minute
+                </label>
+
+                <input
+                    v-model="editEventMinute"
+                    type="number"
+                    min="1"
+                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                />
+            </div>
+
+            <p
+                v-if="updateError"
+                class="text-sm text-red-600"
+            >
+                {{ updateError }}
+            </p>
+
+        </div>
+
+        <template #footer>
+            <button
+                type="button"
+                class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                @click="cancelEdit"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                :disabled="updating"
+                @click="updateEvent"
+            >
+                {{ updating ? 'Saving...' : 'Save' }}
+            </button>
+        </template>
+    </AppModal>
+
 </template>

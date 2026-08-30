@@ -42,6 +42,7 @@ def create_match_event(
             detail="Events can only be added to live matches"
         )
 
+
     player = (
         db.query(Player)
         .filter(Player.id == event_data.player_id)
@@ -158,6 +159,12 @@ def delete_match_event(
             detail="Match not found"
         )
 
+    if match.status.lower() != "live":
+        raise HTTPException(
+            status_code=400,
+            detail="Events can only be deleted from live matches"
+        )
+
     event = (
         db.query(MatchEvent)
         .filter(
@@ -227,6 +234,12 @@ def update_match_event(
         raise HTTPException(
             status_code=404,
             detail="Match not found"
+        )
+
+    if match.status.lower() != "live":
+        raise HTTPException(
+            status_code=400,
+            detail="Events can only be updated for live matches"
         )
 
     event = (
