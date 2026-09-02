@@ -6,6 +6,7 @@ import ClubsView from '@/views/ClubsView.vue'
 import TeamsView from '@/views/TeamsView.vue'
 import PlayersView from '@/views/PlayersView.vue'
 import MatchesView from '@/views/MatchesView.vue'
+import MatchDetailsView from '@/views/MatchDetailsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,12 @@ const router = createRouter({
       path: '/matches/:matchId',
       name: 'match-details',
       component: () => import('@/views/MatchDetailsView.vue')
+    },
+
+    {
+      path: '/matches/:matchId',
+      name: 'match-details',
+      component: () => import('@/views/MatchDetailsView.vue'),
     },
   ],
 })

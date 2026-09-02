@@ -14,8 +14,9 @@ class MatchEventUpdate(BaseModel):
 class MatcheventPlayer(BaseModel):
     id: int
     name: str
-    class config:
-        from_attributes = True
+    model_config ={
+        "from_attributes": True
+    }
 
 class MatchEventResponse(BaseModel):
     id: int

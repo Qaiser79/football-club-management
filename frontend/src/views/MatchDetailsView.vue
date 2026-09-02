@@ -1,7 +1,7 @@
 <script setup>
 import {ref,onMounted} from 'vue'
 import { useRoute } from 'vue-router';
-import { getMatch } from '@/services/matchService';
+import { getMatch, getMatchSquad } from '@/services/matchService';
 import { getPlayers } from '@/services/playerService'
 import { formatDate } from '@/utils/date';
 import { getMatchResult, matchResultLabels } from '@/utils/match'
@@ -80,9 +80,30 @@ const loadPlayers = async () => {
     }
 }
 
+const loadMatchSquad = async () => {
+    if (!match.value?.id) {
+        return
+    }
+
+    try {
+        const data = await getMatchSquad(match.value.id)
+
+        console.log('MATCH SQUAD:', data)
+
+        selectedPlayerIds.value = data.players.map(
+            player => player.player_id
+        )
+
+        console.log('SELECTED PLAYER IDS:', selectedPlayerIds.value)
+    } catch (err) {
+        console.error(err)
+    }
+}
+
 onMounted(async()=> {
     await loadMatch()
     await loadPlayers()
+    await loadMatchSquad()
 })
 </script>
 

@@ -88,7 +88,7 @@ const loadSquad = async () => {
         selectedPlayers.value = data.players
         emit(
             'update:selected-player-ids',
-            selectedPlayers.value
+            selectedPlayers.value.map(player => player.player_id)
         )
         squadExists.value = data.players.length > 0
     } catch (err) {
@@ -113,7 +113,7 @@ const togglePlayer = (playerId) => {
         selectedPlayers.value.splice(index, 1)
         emit(
             'update:selected-player-ids',
-            selectedPlayers.value
+            selectedPlayers.value.map(player => player.player_id)
         )
         return
     }
@@ -128,7 +128,7 @@ const togglePlayer = (playerId) => {
     })
     emit(
         'update:selected-player-ids',
-        selectedPlayers.value
+        selectedPlayers.value.map(player => player.player_id)
     )
 }
 

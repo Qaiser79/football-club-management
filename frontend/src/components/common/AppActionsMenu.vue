@@ -12,9 +12,14 @@ const props = defineProps({
     },
 })
 
-const emit = defineEmits(['edit', 'delete'])
+const emit = defineEmits(['view','edit', 'delete'])
 
 const open = ref(false)
+
+const handleView = () => {
+    open.value = false
+    emit('view')
+}
 
 const handleEdit = () => {
     open.value = false
@@ -47,6 +52,15 @@ const handleDelete = () => {
                     : 'top-10'
             "
         >
+
+            <button
+                type="button"
+                class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                @click="handleView"
+            >
+                View
+            </button>
+
             <button
                 type="button"
                 class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"

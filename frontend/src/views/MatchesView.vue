@@ -7,8 +7,10 @@ import { getMatches, createMatch, updateMatch,deleteMatch } from '@/services/mat
 import MatchForm from '@/components/matches/MatchForm.vue'
 import AppModal from '@/components/common/AppModal.vue'
 import AppActionsMenu from '@/components/common/AppActionsMenu.vue'
+import { useRouter } from 'vue-router'
 
 
+const router = useRouter()
 const columns = [
     { key: 'team.name', label: 'Our Team' },
     { key: 'opponent_name', label: 'Opponent' },
@@ -84,6 +86,10 @@ const addMatch = async (formData) => {
 const editMatch = (match)=>{
     selectedMatch.value=match
     showEditMatch.value = true
+}
+
+const viewMatch = (match) => {
+    router.push(`/matches/${match.id}`)
 }
 
 
@@ -272,6 +278,7 @@ onUnmounted(() => {
                     <AppActionsMenu
                         :row-index="rowIndex"
                         :total-rows="totalRows"
+                        @view="viewMatch(row)"
                         @edit="editMatch(row)"
                         @delete="removeMatch(row)"
                     />

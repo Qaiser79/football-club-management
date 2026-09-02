@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { getMatchEvents,createMatchEvent, deleteMatchEvent, updateMatchEvent } from '@/services/matchService'
 import AppActionsMenue from '@/components/common/AppActionsMenu.vue'
 import AppModal from '@/components/common/AppModal.vue'
@@ -22,6 +22,13 @@ const props = defineProps({
         default: '',
     },
 })
+
+const squadPlayers = computed(() => {
+    return props.players.filter(
+        player => props.squadPlayerIds.includes(Number(player.id))
+    )
+})
+
 
 const events = ref([])
 const loading = ref(false)
@@ -178,7 +185,12 @@ onMounted(()=>{
     loadEvents()
 })
 
+
+
 </script>
+
+
+
 
 <template>
     <div class="mt-6">
@@ -192,6 +204,7 @@ onMounted(()=>{
                 v-if="props.matchStatus?.toLowerCase() === 'live'"
                 class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4"
             >
+
                 <h4 class="text-sm font-semibold text-gray-900">
                     Add Event
                 </h4>
@@ -212,9 +225,7 @@ onMounted(()=>{
                             </option>
 
                             <option
-                                v-for="player in props.players.filter(
-                                    player => props.squadPlayerIds.includes(player.id)
-                                )"
+                                v-for="player in squadPlayers"
                                 :key="player.id"
                                 :value="player.id"
                             >
@@ -370,9 +381,7 @@ onMounted(()=>{
                     class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
                 >
                     <option
-                        v-for="player in props.players.filter(
-                            player => props.squadPlayerIds.includes(player.id)
-                        )"
+                        v-for="player in squadPlayers"
                         :key="player.id"
                         :value="player.id"
                     >
