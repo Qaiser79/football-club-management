@@ -29,13 +29,22 @@ const squadPlayers = computed(() => {
     )
 })
 
+const substitutionPlayersIn = computed(() => {
+    return squadPlayers.value.filter(
+        player => !selectedPlayerId.value ||
+        Number(player.id) !== Number(selectedPlayerId.value)
+    )
+})
+
 
 const events = ref([])
 const loading = ref(false)
 const error = ref(null)
 const selectedPlayerId = ref('')
+const selectedRelatedPlayerId = ref('')
 const selectedEventType = ref('')
 const eventMinute = ref('')
+
 const saving = ref(false)
 const saveError = ref(null)
 const saveSuccess = ref(false)
@@ -94,6 +103,9 @@ const addEvent = async () => {
             props.matchId,
             {
                 player_id: Number(selectedPlayerId.value),
+                related_player_id: selectedRelatedPlayerId.value
+                ? Number(selectedRelatedPlayerId.value)
+                : null,
                 event_type: selectedEventType.value,
                 minute: eventMinute.value
                     ? Number(eventMinute.value)
@@ -103,6 +115,7 @@ const addEvent = async () => {
 
         saveSuccess.value = true
         selectedPlayerId.value = ''
+        selectedRelatedPlayerId.value = ''
         eventMinute.value = ''
 
         await loadEvents()
@@ -273,6 +286,29 @@ onMounted(()=>{
 
                 </div>
 
+                <div v-if="selectedEventType === 'substitution'">
+                    <label class="block text-sm font-medium text-gray-700">
+                        Player In
+                    </label>
+
+                    <select
+                        v-model="selectedRelatedPlayerId"
+                        class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                    >
+                        <option value="" disabled>
+                            Select player
+                        </option>
+
+                        <option
+                            v-for="player in substitutionPlayersIn"
+                            :key="player.id"
+                            :value="player.id"
+                        >
+                            {{ player.name }}
+                        </option>
+                    </select>
+                </div>
+
                 <div class="mt-4 flex justify-end">
                     <button
                         type="button"
@@ -280,7 +316,8 @@ onMounted(()=>{
                         :disabled="
                             saving ||
                             !selectedPlayerId ||
-                            !selectedEventType
+                            !selectedEventType ||
+                            (selectedEventType === 'substitution' && !selectedRelatedPlayerId)
                         "
                         @click="addEvent"
                     >
