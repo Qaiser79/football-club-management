@@ -18,6 +18,11 @@ class MatchEvent(Base):
         nullable=False
     )
 
+    related_player_id: Mapped[int | None] = mapped_column(
+        ForeignKey("players.id"),
+        nullable=True
+    )
+
     event_type: Mapped[str] = mapped_column(
         String(30),
         nullable=False
@@ -36,4 +41,10 @@ class MatchEvent(Base):
 
     match: Mapped["Match"] = relationship()
 
-    player: Mapped["Player"] = relationship()
+    player: Mapped["Player"] = relationship(
+        foreign_keys=[player_id]
+    )
+
+    related_player: Mapped["Player"] = relationship(
+        foreign_keys=[related_player_id]
+    )
