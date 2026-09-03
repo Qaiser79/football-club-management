@@ -29,12 +29,6 @@ const squadPlayers = computed(() => {
     )
 })
 
-const substitutionPlayersIn = computed(() => {
-    return squadPlayers.value.filter(
-        player => !selectedPlayerId.value ||
-        Number(player.id) !== Number(selectedPlayerId.value)
-    )
-})
 
 
 const events = ref([])
@@ -134,7 +128,7 @@ const currentOnFieldPlayerIds = computed(()=>{
         return onField
 })
 
-const playerOut = computed(() => {
+const playersOut = computed(() => {
     return squadPlayers.value.filter(
         player => currentOnFieldPlayerIds.value.has(Number(player.id))
     )
@@ -159,9 +153,10 @@ const addEvent = async () => {
             props.matchId,
             {
                 player_id: Number(selectedPlayerId.value),
-                related_player_id: selectedRelatedPlayerId.value
-                ? Number(selectedRelatedPlayerId.value)
-                : null,
+                related_player_id: 
+                    selectedRelatedPlayerId.value
+                        ? Number(selectedRelatedPlayerId.value)
+                        : null,
                 event_type: selectedEventType.value,
                 minute: eventMinute.value
                     ? Number(eventMinute.value)
@@ -295,7 +290,7 @@ onMounted(async ()=>{
                             </option>
 
                             <option
-                                v-for="player in squadPlayers"
+                                v-for="player in playersOut"
                                 :key="player.id"
                                 :value="player.id"
                             >
@@ -357,7 +352,7 @@ onMounted(async ()=>{
                         </option>
 
                         <option
-                            v-for="player in substitutionPlayersIn"
+                            v-for="player in playersIn"
                             :key="player.id"
                             :value="player.id"
                         >
