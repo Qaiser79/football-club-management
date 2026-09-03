@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { getMatchEvents,createMatchEvent, deleteMatchEvent, updateMatchEvent } from '@/services/matchService'
+import { getMatchEvents,createMatchEvent, deleteMatchEvent, updateMatchEvent, getMatchSquad } from '@/services/matchService'
 import AppActionsMenue from '@/components/common/AppActionsMenu.vue'
 import AppModal from '@/components/common/AppModal.vue'
 
@@ -39,6 +39,9 @@ const substitutionPlayersIn = computed(() => {
 
 const events = ref([])
 const loading = ref(false)
+const squad = ref([])
+const squadLoading = ref(false)
+
 const error = ref(null)
 const selectedPlayerId = ref('')
 const selectedRelatedPlayerId = ref('')
@@ -54,8 +57,6 @@ const editEventType = ref('')
 const editEventMinute = ref('')
 const updating = ref(false)
 const updateError = ref(null)
-
-
 
 const eventLabels = {
     goal: 'Goal',
@@ -89,6 +90,61 @@ const loadEvents = async () => {
         loading.value = false
     }
 }
+
+const loadSquad= async () => {
+    squadLoading.value = true
+
+    try {
+        const data = await getMatchSquad(props.matchId)
+
+        squad.value = data.players
+    } catch (err) {
+        console.error(err)
+    } finally {
+        squadLoading.value = false
+    }
+}
+
+const currentOnFieldPlayerIds = computed(()=>{
+    const onField = new Set()
+    squad.value.forEach(player=> {
+        if (player.is_starter) {
+            onField.add(Number(player.player_id))
+        }
+    })
+
+    events.value
+        .filter(event=> event.event_type === 'substitution')
+        .sort((a,b)=>{
+            const minuteA = a.minute ?? 0
+            const minuteB = b.minute ?? 0
+
+            if (minuteA !== minuteB) {
+                return minuteA - minuteB
+            }
+            return a.id-b.id
+        })
+        .forEach(event => {
+            onField.delete(Number(event.player_id))
+            if (event.related_player_id !== null){
+                onField.add(Number(event.related_player_id))
+            }
+        })
+
+        return onField
+})
+
+const playerOut = computed(() => {
+    return squadPlayers.value.filter(
+        player => currentOnFieldPlayerIds.value.has(Number(player.id))
+    )
+})
+
+const playersIn = computed(()=>{
+    return squadPlayers.value.filter(
+        player => !currentOnFieldPlayerIds.value.has(Number(player.id))
+    )
+})
 
 
 const emit = defineEmits(['event-created'])
@@ -194,8 +250,9 @@ const updateEvent = async () => {
     }
 }
 
-onMounted(()=>{
-    loadEvents()
+onMounted(async ()=>{
+    await loadSquad()
+    await loadEvents()
 })
 
 
