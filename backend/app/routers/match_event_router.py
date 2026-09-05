@@ -17,7 +17,8 @@ router = APIRouter(
 
 def get_current_on_field_players(
     match_id: int,
-    db: Session
+    db: Session,
+    exclude_event_id: int | None = None
 ):
     squad = (
         db.query(MatchSquad)
@@ -33,12 +34,21 @@ def get_current_on_field_players(
     }
 
     # Replay substitutions to determine the current players on the field
-    events = (
+    events_query = (
         db.query(MatchEvent)
         .filter(
             MatchEvent.match_id == match_id,
             MatchEvent.event_type == "substitution"
         )
+    )
+
+    if exclude_event_id is not None:
+        events_query = events_query.filter(
+            MatchEvent.id != exclude_event_id
+        )
+
+    events = (
+        events_query
         .order_by(
             MatchEvent.minute.asc(),
             MatchEvent.id.asc()
@@ -54,7 +64,6 @@ def get_current_on_field_players(
             on_field.add(event.related_player_id)
 
     return on_field
-
 @router.post(
     "/{match_id}/events",
     response_model=MatchEventResponse,
@@ -417,6 +426,63 @@ def update_match_event(
             status_code=400,
             detail="Invalid event type"
         )
+
+    if event_type == "substitution":
+
+        if event_data.related_player_id is None:
+            raise HTTPException(
+                status_code=400,
+                detail="Substitution requires a player coming in"
+            )
+
+        if event_data.player_id == event_data.related_player_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Player coming in cannot be the same as player going out"
+            )
+
+        related_player = (
+            db.query(Player)
+            .filter(Player.id == event_data.related_player_id)
+            .first()
+        )
+
+        if not related_player:
+            raise HTTPException(
+                status_code=404,
+                detail="Player coming in not found"
+            )
+
+        related_squad_player = (
+            db.query(MatchSquad)
+            .filter(
+                MatchSquad.match_id == match_id,
+                MatchSquad.player_id == event_data.related_player_id
+            )
+            .first()
+        )
+
+        if not related_squad_player:
+            raise HTTPException(
+                status_code=400,
+                detail="Player coming in must be part of the match squad"
+            )
+        current_on_field = get_current_on_field_players(
+            match_id,
+            db,
+            exclude_event_id=event_id
+        )
+        if event_data.player_id not in current_on_field:
+            raise HTTPException(
+                status_code=400,
+                detail="Player going out is not currently on the field"
+            )
+
+        if event_data.related_player_id in current_on_field:
+            raise HTTPException(
+                status_code=400,
+                detail="Player coming in is already on the field"
+            )
 
     if event_data.minute is not None and event_data.minute < 1:
         raise HTTPException(

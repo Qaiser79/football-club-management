@@ -46,9 +46,12 @@ const saving = ref(false)
 const saveError = ref(null)
 const saveSuccess = ref(false)
 const editingEvent = ref(null)
+
 const editPlayerId = ref('')
+const editRelatedPlayerId = ref('')
 const editEventType = ref('')
 const editEventMinute = ref('')
+
 const updating = ref(false)
 const updateError = ref(null)
 
@@ -109,15 +112,19 @@ const currentOnFieldPlayerIds = computed(()=>{
     })
 
     events.value
-        .filter(event=> event.event_type === 'substitution')
-        .sort((a,b)=>{
-            const minuteA = a.minute ?? 0
-            const minuteB = b.minute ?? 0
-
-            if (minuteA !== minuteB) {
-                return minuteA - minuteB
+        .filter(event => {
+            if (event.event_type !== 'substitution') {
+                return false
             }
-            return a.id-b.id
+
+            if (
+                editingEvent.value &&
+                event.id === editingEvent.value.id
+            ) {
+                return false
+            }
+
+            return true
         })
         .forEach(event => {
             onField.delete(Number(event.player_id))
@@ -199,6 +206,7 @@ const deleteEvent = async (eventId) => {
 const startEdit = (event) => {
     editingEvent.value = event
     editPlayerId.value = event.player_id
+    editRelatedPlayerId.value = event.related_player_id ?? ''
     editEventType.value = event.event_type
     editEventMinute.value = event.minute ?? ''
     updateError.value = null
@@ -207,6 +215,7 @@ const startEdit = (event) => {
 const cancelEdit = () => {
     editingEvent.value = null
     editPlayerId.value = ''
+    editRelatedPlayerId.value = ''
     editEventType.value = ''
     editEventMinute.value = ''
     updateError.value = null
@@ -226,6 +235,10 @@ const updateEvent = async () => {
             editingEvent.value.id,
             {
                 player_id: Number(editPlayerId.value),
+                related_player_id:
+                    editRelatedPlayerId.value
+                        ? Number(editRelatedPlayerId.value)
+                        : null,
                 event_type: editEventType.value,
                 minute: editEventMinute.value
                     ? Number(editEventMinute.value)
@@ -495,6 +508,29 @@ onMounted(async ()=>{
                         :value="eventType.value"
                     >
                         {{ eventType.label }}
+                    </option>
+                </select>
+            </div>
+
+            <div v-if="editEventType === 'substitution'">
+                <label class="block text-sm font-medium text-gray-700">
+                    Player In
+                </label>
+
+                <select
+                    v-model="editRelatedPlayerId"
+                    class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+                >
+                    <option value="" disabled>
+                        Select player
+                    </option>
+
+                    <option
+                        v-for="player in playersIn"
+                        :key="player.id"
+                        :value="player.id"
+                    >
+                        {{ player.name }}
                     </option>
                 </select>
             </div>
