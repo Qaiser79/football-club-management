@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { getMatchEvents,createMatchEvent, deleteMatchEvent, updateMatchEvent, getMatchSquad } from '@/services/matchService'
 import AppActionsMenue from '@/components/common/AppActionsMenu.vue'
 import AppModal from '@/components/common/AppModal.vue'
@@ -165,6 +165,15 @@ const playersIn = computed(()=>{
     )
 })
 
+const editPlayers = computed(() => {
+    if (editEventType.value === 'substitution') {
+        return playersOut.value
+    }
+
+    return squadPlayers.value.filter(
+        player => currentOnFieldPlayerIds.value.has(Number(player.id))
+    )
+})
 
 const emit = defineEmits(['event-created'])
 
@@ -172,6 +181,33 @@ const addEvent = async () => {
     saving.value = true
     saveError.value = null
     saveSuccess.value=false
+
+    if (
+        selectedEventType.value === 'substitution' &&
+        selectedPlayerId.value === selectedRelatedPlayerId.value
+    ) {
+        saveError.value = 'Player coming in cannot be the same as player going out'
+        saving.value = false
+        return
+    }
+
+    if (
+        !eventMinute.value ||
+        Number(eventMinute.value) < 1
+    ) {
+        saveError.value = 'Event minute must be greater than 0'
+        saving.value = false
+        return
+    }
+
+    if (
+        selectedEventType.value !== 'substitution' &&
+        !currentOnFieldPlayerIds.value.has(Number(selectedPlayerId.value))
+    ) {
+        saveError.value = 'Player must currently be on the field'
+        saving.value = false
+        return
+    }
 
     try {
         await createMatchEvent(
@@ -246,6 +282,33 @@ const updateEvent = async () => {
     updating.value = true
     updateError.value = null
 
+    if (
+        editEventType.value === 'substitution' &&
+        editPlayerId.value === editRelatedPlayerId.value
+    ) {
+        updateError.value = 'Player coming in cannot be the same as player going out'
+        updating.value = false
+        return
+    }
+
+    if (
+        !editEventMinute.value ||
+        Number(editEventMinute.value) < 1
+    ) {
+        updateError.value = 'Event minute must be greater than 0'
+        updating.value = false
+        return
+    }
+
+    if (
+        editEventType.value !== 'substitution' &&
+        !currentOnFieldPlayerIds.value.has(Number(editPlayerId.value))
+    ) {
+        updateError.value = 'Player must currently be on the field'
+        updating.value = false
+        return
+    }
+
     try {
         await updateMatchEvent(
             props.matchId,
@@ -281,7 +344,15 @@ onMounted(async ()=>{
     await loadEvents()
 })
 
+watch(editEventType, ()=>{
+    const validPlayer = editPlayers.value.some(
+        player => Number(player.id) === Number(editPlayerId.value)
+    )
 
+    if (!validPlayer) {
+        editPlayerId.value= ''
+    }
+})
 
 </script>
 
@@ -508,7 +579,7 @@ onMounted(async ()=>{
                     class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
                 >
                     <option
-                        v-for="player in squadPlayers"
+                        v-for="player in editPlayers"
                         :key="player.id"
                         :value="player.id"
                     >

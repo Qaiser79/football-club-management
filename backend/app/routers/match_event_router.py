@@ -202,6 +202,18 @@ def create_match_event(
             detail="Event minute must be greater than 0"
         )
 
+    if (
+        event_type != "substitution"
+        and event_data.player_id not in get_current_on_field_players(
+            match_id,
+            db
+        )
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Player must currently be on the field"
+        )
+
     new_event = MatchEvent(
         match_id=match_id,
         player_id=event_data.player_id,
@@ -488,6 +500,19 @@ def update_match_event(
         raise HTTPException(
             status_code=400,
             detail="Event minute must be greater than 0"
+        )
+
+    if (
+        event_type != "substitution"
+        and event_data.player_id not in get_current_on_field_players(
+            match_id,
+            db,
+            exclude_event_id=event_id
+        )
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Player must currently be on the field"
         )
 
     old_event_type = event.event_type
