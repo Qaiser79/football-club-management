@@ -64,6 +64,15 @@ const eventLabels = {
     substitution: 'Substitution',
 }
 
+const eventIcons = {
+    goal: '⚽',
+    assist: '🎯',
+    yellow_card: '🟨',
+    red_card: '🟥',
+    substitution: '🔄',
+    foul: '⚠️',
+}
+
 
 const eventTypes = [
     { value: 'goal', label: 'Goal' },
@@ -79,8 +88,16 @@ const loadEvents = async () => {
     error.value=null
 
     try {
-        events.value = await getMatchEvents(props.matchId)
-        console.log('ALL EVENTS:', events.value)
+        events.value = (await getMatchEvents(props.matchId)).sort((a,b)=>{
+            const minuteA = a.minute ?? 0
+            const minuteB = b.minute ?? 0 
+
+            if (minuteA!=minuteB){
+                return minuteA-minuteB
+            }
+            return a.id-b.id
+        })
+        
     } catch (err) {
         console.error(err)
         error.value="Failed to load match events"
@@ -443,10 +460,17 @@ onMounted(async ()=>{
 
                     <div class="flex-1">
                         <p class="font-medium text-gray-900">
-                            {{ event.player.name }}
+                            <template v-if="event.event_type === 'substitution' && event.related_player">
+                                {{ event.player.name }} → {{ event.related_player.name }}
+                            </template>
+
+                            <template v-else>
+                                {{ event.player.name }}
+                            </template>
                         </p>
 
                         <p class="mt-1 text-sm text-gray-500">
+                            {{ eventIcons[event.event_type] || '' }}
                             {{ eventLabels[event.event_type] || event.event_type }}
                         </p>
                         
