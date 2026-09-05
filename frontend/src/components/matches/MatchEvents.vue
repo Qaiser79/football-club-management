@@ -77,6 +77,7 @@ const loadEvents = async () => {
 
     try {
         events.value = await getMatchEvents(props.matchId)
+        console.log('ALL EVENTS:', events.value)
     } catch (err) {
         console.error(err)
         error.value="Failed to load match events"
@@ -90,7 +91,7 @@ const loadSquad= async () => {
 
     try {
         const data = await getMatchSquad(props.matchId)
-
+        console.log('EVENTS SQUAD DATA:', data.players)
         squad.value = data.players
     } catch (err) {
         console.error(err)

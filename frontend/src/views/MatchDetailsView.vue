@@ -88,7 +88,7 @@ const loadMatchSquad = async () => {
     try {
         const data = await getMatchSquad(match.value.id)
 
-        console.log('MATCH SQUAD:', data)
+        console.log('MATCH SQUAD PLAYERS:', data.players)
 
         selectedPlayerIds.value = data.players.map(
             player => player.player_id
