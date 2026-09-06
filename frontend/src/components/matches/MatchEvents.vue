@@ -153,15 +153,29 @@ const currentOnFieldPlayerIds = computed(()=>{
         return onField
 })
 
+const redCardedPlayersIds = computed(()=>{
+    const redCarded = new Set()
+
+    events.value
+        .filter(event => event.event_type === 'red_card')
+        .forEach(event => {
+            redCarded.add(Number(event.player_id))
+        })
+
+        return redCarded
+})
+
 const playersOut = computed(() => {
     return squadPlayers.value.filter(
-        player => currentOnFieldPlayerIds.value.has(Number(player.id))
+        player => currentOnFieldPlayerIds.value.has(Number(player.id)) &&
+        !redCardedPlayersIds.value.has(Number(player.id))
     )
 })
 
 const playersIn = computed(()=>{
     return squadPlayers.value.filter(
-        player => !currentOnFieldPlayerIds.value.has(Number(player.id))
+        player => !currentOnFieldPlayerIds.value.has(Number(player.id)) &&
+        !redCardedPlayersIds.value.has(Number(player.id))
     )
 })
 
@@ -170,10 +184,24 @@ const editPlayers = computed(() => {
         return playersOut.value
     }
 
-    return squadPlayers.value.filter(
-        player => currentOnFieldPlayerIds.value.has(Number(player.id))
-    )
-})
+    return squadPlayers.value.filter(player => {
+        const playerId = Number(player.id)
+
+        if (currentOnFieldPlayerIds.value.has(playerId)) {
+            return true
+        }
+
+        // Allow the player of the event currently being edited
+        if (
+            editingEvent.value &&
+            Number(editingEvent.value.player_id) === playerId
+        ) {
+            return true
+        }
+
+        return false
+     })
+    })
 
 const emit = defineEmits(['event-created'])
 
@@ -296,15 +324,6 @@ const updateEvent = async () => {
         Number(editEventMinute.value) < 1
     ) {
         updateError.value = 'Event minute must be greater than 0'
-        updating.value = false
-        return
-    }
-
-    if (
-        editEventType.value !== 'substitution' &&
-        !currentOnFieldPlayerIds.value.has(Number(editPlayerId.value))
-    ) {
-        updateError.value = 'Player must currently be on the field'
         updating.value = false
         return
     }

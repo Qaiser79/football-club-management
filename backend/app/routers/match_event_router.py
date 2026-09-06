@@ -9,61 +9,19 @@ from app.schemas.match_event_schema import (
     MatchEventResponse
 )
 
+from app.services.match_event_service import (
+    get_current_on_field_players,
+    has_player_received_red_card,
+    validate_event_timeline,
+)
+
 router = APIRouter(
     prefix="/match",
     tags=["Match Events"]
 )
 
 
-def get_current_on_field_players(
-    match_id: int,
-    db: Session,
-    exclude_event_id: int | None = None
-):
-    squad = (
-        db.query(MatchSquad)
-        .filter(MatchSquad.match_id == match_id)
-        .all()
-    )
 
-    # Start with the original starting XI
-    on_field = {
-        player.player_id
-        for player in squad
-        if player.is_starter
-    }
-
-    # Replay substitutions to determine the current players on the field
-    events_query = (
-        db.query(MatchEvent)
-        .filter(
-            MatchEvent.match_id == match_id,
-            MatchEvent.event_type == "substitution"
-        )
-    )
-
-    if exclude_event_id is not None:
-        events_query = events_query.filter(
-            MatchEvent.id != exclude_event_id
-        )
-
-    events = (
-        events_query
-        .order_by(
-            MatchEvent.minute.asc(),
-            MatchEvent.id.asc()
-        )
-        .all()
-    )
-
-    for event in events:
-        if event.player_id in on_field:
-            on_field.remove(event.player_id)
-
-        if event.related_player_id is not None:
-            on_field.add(event.related_player_id)
-
-    return on_field
 @router.post(
     "/{match_id}/events",
     response_model=MatchEventResponse,
@@ -130,6 +88,9 @@ def create_match_event(
     }
 
     event_type = event_data.event_type.lower()
+    print("DEBUG EVENT TYPE:", repr(event_type))
+    print("DEBUG PLAYER:", event_data.player_id)
+    print("DEBUG MINUTE:", event_data.minute)
 
     if event_type not in allowed_event_types:
         raise HTTPException(
@@ -184,6 +145,28 @@ def create_match_event(
             db
         )
 
+        if has_player_received_red_card(
+            match_id,
+            event_data.player_id,
+            event_data.minute,
+            db
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Player going out has already received a red card"
+            )
+
+        if has_player_received_red_card(
+            match_id,
+            event_data.related_player_id,
+            event_data.minute,
+            db
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Player coming in has already received a red card"
+            )
+
         if event_data.player_id not in current_on_field:
             raise HTTPException(
                 status_code=400,
@@ -203,15 +186,48 @@ def create_match_event(
         )
 
     if (
-        event_type != "substitution"
-        and event_data.player_id not in get_current_on_field_players(
+        event_type != "red_card"
+        and has_player_received_red_card(
             match_id,
+            event_data.player_id,
+            event_data.minute,
             db
         )
     ):
         raise HTTPException(
             status_code=400,
+            detail="Player has already received a red card"
+        )
+
+    if (
+        event_type != "substitution"
+        and event_data.player_id not in get_current_on_field_players(
+            match_id,
+            db,
+            minute=event_data.minute
+        )
+    ):
+        raise HTTPException(
+            status_code=400,
             detail="Player must currently be on the field"
+        )
+
+    is_valid, timeline_error = validate_event_timeline(
+        match_id,
+        db,
+        override_event_id=None,
+        override_player_id=event_data.player_id,
+        override_related_player_id=event_data.related_player_id,
+        override_event_type=event_type,
+        override_minute=event_data.minute,
+    )
+
+    print("DEBUG TIMELINE:", is_valid, timeline_error)
+
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail=timeline_error
         )
 
     new_event = MatchEvent(
@@ -312,6 +328,18 @@ def delete_match_event(
         raise HTTPException(
             status_code=404,
             detail="Player not found"
+        )
+
+    is_valid, timeline_error = validate_event_timeline(
+        match_id,
+        db,
+        exclude_event_id=event_id,
+    )
+
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail=timeline_error
         )
 
     response = {
@@ -482,6 +510,7 @@ def update_match_event(
         current_on_field = get_current_on_field_players(
             match_id,
             db,
+            minute=event_data.minute,
             exclude_event_id=event_id
         )
         if event_data.player_id not in current_on_field:
@@ -503,16 +532,53 @@ def update_match_event(
         )
 
     if (
-        event_type != "substitution"
-        and event_data.player_id not in get_current_on_field_players(
+        event_type != "red_card"
+        and has_player_received_red_card(
             match_id,
+            event_data.player_id,
+            event_data.minute,
             db,
             exclude_event_id=event_id
         )
     ):
         raise HTTPException(
             status_code=400,
+            detail="Player has already received a red card"
+        )
+
+    if (
+        event_type != "substitution"
+        and event_data.player_id not in get_current_on_field_players(
+            match_id,
+            db,
+            minute=event_data.minute,
+            exclude_event_id=event_id
+        )
+        and not (
+            event_type == "red_card"
+            and event.event_type == "red_card"
+            and event.player_id == event_data.player_id
+        )
+    ):
+        raise HTTPException(
+            status_code=400,
             detail="Player must currently be on the field"
+        )
+
+    is_valid, timeline_error = validate_event_timeline(
+        match_id,
+        db,
+        override_event_id=event_id,
+        override_player_id=event_data.player_id,
+        override_related_player_id=event_data.related_player_id,
+        override_event_type=event_type,
+        override_minute=event_data.minute,
+    )
+
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail=timeline_error
         )
 
     old_event_type = event.event_type
