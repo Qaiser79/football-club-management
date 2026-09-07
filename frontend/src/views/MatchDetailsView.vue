@@ -1,7 +1,7 @@
 <script setup>
-import {ref,onMounted} from 'vue'
+import {ref,onMounted, computed} from 'vue'
 import { useRoute } from 'vue-router';
-import { getMatch, getMatchSquad } from '@/services/matchService';
+import { getMatch, getMatchSquad,getMatchEvents } from '@/services/matchService';
 import { getPlayers } from '@/services/playerService'
 import { formatDate } from '@/utils/date';
 import { getMatchResult, matchResultLabels } from '@/utils/match'
@@ -21,6 +21,15 @@ const playersLoading = ref(false)
 const playersError = ref(null)
 
 const selectedPlayerIds = ref([])
+const matchEvents = ref([])
+
+const importantEvents = computed(() => {
+    return matchEvents.value.filter(event =>
+        ['goal', 'yellow_card', 'red_card', 'substitution'].includes(
+            event.event_type
+        )
+    )
+})
 
 const statusClasses = {
     scheduled: 'bg-blue-50 text-blue-700',
@@ -104,6 +113,7 @@ onMounted(async()=> {
     await loadMatch()
     await loadPlayers()
     await loadMatchSquad()
+    matchEvents.value = await getMatchEvents(match.value.id)
 })
 </script>
 
@@ -251,6 +261,53 @@ onMounted(async()=> {
         :match-status="match.status"
         @event-created="loadMatch"
     />
+
+
+    <div
+        v-if="match && activeSection === 'overview' && importantEvents.length"
+        class="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+    >
+        <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">
+                Key Events
+            </h3>
+
+            <button
+                type="button"
+                class="text-sm font-medium text-gray-600 hover:text-gray-900"
+                @click="activeSection = 'events'"
+            >
+                View all
+            </button>
+        </div>
+
+        <div class="mt-4 space-y-3">
+            <div
+                v-for="event in importantEvents"
+                :key="event.id"
+                class="flex items-center gap-3 rounded-lg bg-gray-50 px-3 py-2"
+            >
+                <span class="w-10 text-sm font-semibold text-gray-500">
+                    {{ event.minute ? `${event.minute}'` : '-' }}
+                </span>
+
+                <span class="text-sm font-medium text-gray-900">
+                    {{ event.player.name }}
+                </span>
+
+                <span class="text-sm text-gray-500">
+                    {{ event.event_type.replace('_', ' ') }}
+                </span>
+
+                <span
+                    v-if="event.event_type === 'substitution' && event.related_player"
+                    class="text-sm text-gray-500"
+                >
+                    → {{ event.related_player.name }}
+                </span>
+            </div>
+        </div>
+    </div>
 
     <div v-if="match">
         <div class="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">

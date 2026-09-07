@@ -269,6 +269,9 @@ const addEvent = async () => {
 }
 
 const deleteEvent = async (eventId) => {
+    if (!window.confirm('Are you sure you want to delete this event?')) {
+        return
+    }
     try {
         await deleteMatchEvent(
             props.matchId,
@@ -280,7 +283,7 @@ const deleteEvent = async (eventId) => {
         emit('event-created')
     } catch (err) {
         console.error(err)
-        saveError.value = 'Failed to delete event'
+        saveError.value = err.message || 'Failed to delete event'
     }
 }
 
@@ -352,7 +355,7 @@ const updateEvent = async () => {
         emit('event-created')
     } catch (err) {
         console.error(err)
-        updateError.value = 'Failed to update event'
+        updateError.value = err.message || 'Failed to update event'
     } finally {
         updating.value = false
     }
@@ -490,6 +493,7 @@ watch(editEventType, ()=>{
                             saving ||
                             !selectedPlayerId ||
                             !selectedEventType ||
+                            !selectedEventMinute ||
                             (selectedEventType === 'substitution' && !selectedRelatedPlayerId)
                         "
                         @click="addEvent"

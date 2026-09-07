@@ -157,7 +157,8 @@ export const deleteMatchEvent = async (matchId, eventId) => {
     )
 
     if (!response.ok) {
-        throw new Error('Failed to delete match event')
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to delete match event')
     }
 
     return response.json()
@@ -176,7 +177,8 @@ export const updateMatchEvent = async (matchId, eventId, eventData) => {
     )
 
     if (!response.ok) {
-        throw new Error('Failed to update match event')
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to update match event')
     }
 
     return response.json()
