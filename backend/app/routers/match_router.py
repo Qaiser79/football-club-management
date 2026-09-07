@@ -209,3 +209,22 @@ def delete_match(
     return {
         "message": "Match deleted successfully"
     }
+
+
+@router.post("/{match_id}/start", response_model=MatchResponse)
+def start_match(match_id: int, db: Session= Depends(get_db)):
+
+    match = db.query(Match).filter(Match.id == match_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail= "Match not found")
+
+    if match.status !="scheduled":
+        raise HTTPException(
+            status_code=400,
+            detail = "Only scheduled matches can be started"
+        )
+    match.status = "live"
+    db.commit()
+    db.refresh(match)
+
+    return match

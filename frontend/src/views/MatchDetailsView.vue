@@ -23,6 +23,13 @@ const playersError = ref(null)
 const selectedPlayerIds = ref([])
 const matchEvents = ref([])
 
+const eventIcons = {
+    goal: '⚽',
+    yellow_card: '🟨',
+    red_card: '🟥',
+    substitution: '🔄',
+}
+
 const importantEvents = computed(() => {
     return matchEvents.value.filter(event =>
         ['goal', 'yellow_card', 'red_card', 'substitution'].includes(
@@ -295,8 +302,8 @@ onMounted(async()=> {
                     {{ event.player.name }}
                 </span>
 
-                <span class="text-sm text-gray-500">
-                    {{ event.event_type.replace('_', ' ') }}
+                <span class="text-base">
+                    {{ eventIcons[event.event_type] }}
                 </span>
 
                 <span
