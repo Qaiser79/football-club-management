@@ -591,10 +591,16 @@ watch(editEventType, ()=>{
                 <div
                     v-for="(event, index) in events"
                     :key="event.id"
-                    class="flex items-center gap-4 rounded-lg border border-gray-200 p-4"
+                    class="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 transition hover:bg-gray-50"
                 >
-                    <div class="w-12 text-sm font-semibold text-gray-700">
-                        {{ event.minute ? `${event.minute}'` : '-' }}
+                    <div class="flex w-16 shrink-0 items-center gap-2">
+                        <span class="text-sm font-bold text-gray-900">
+                            {{ event.minute ? `${event.minute}'` : '-' }}
+                        </span>
+
+                        <span class="text-lg leading-none">
+                            {{ eventIcons[event.event_type] || '' }}
+                        </span>
                     </div>
 
                     <div class="flex-1">
@@ -609,10 +615,8 @@ watch(editEventType, ()=>{
                         </p>
 
                         <p class="mt-1 text-sm text-gray-500">
-                            {{ eventIcons[event.event_type] || '' }}
                             {{ eventLabels[event.event_type] || event.event_type }}
                         </p>
-                        
                     </div>
 
                     <AppActionsMenue
