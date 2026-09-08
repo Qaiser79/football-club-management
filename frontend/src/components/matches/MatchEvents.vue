@@ -21,6 +21,10 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    match: {
+        type: Object,
+        required: true,
+    },
 })
 
 const squadPlayers = computed(() => {
@@ -82,6 +86,15 @@ const eventTypes = [
     { value: 'foul', label: 'Foul' },
     { value: 'substitution', label: 'Substitution' },
 ]
+
+const eventClasses = {
+    goal: 'border-green-200 bg-green-50',
+    assist: 'border-blue-200 bg-blue-50',
+    yellow_card: 'border-yellow-200 bg-yellow-50',
+    red_card: 'border-red-200 bg-red-50',
+    substitution: 'border-purple-200 bg-purple-50',
+    foul: 'border-gray-200 bg-gray-50',
+}
 
 const loadEvents = async () => {
     loading.value=true
@@ -563,6 +576,7 @@ watch(editEventType, ()=>{
             </div>
 
 
+
             <div
                 v-if="loading"
                 class="mt-4 text-sm text-gray-500"
@@ -592,6 +606,7 @@ watch(editEventType, ()=>{
                     v-for="(event, index) in events"
                     :key="event.id"
                     class="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 transition hover:bg-gray-50"
+                    :class="eventClasses[event.event_type] || 'border-gray-200 bg-white'"
                 >
                     <div class="flex w-16 shrink-0 items-center gap-2">
                         <span class="text-sm font-bold text-gray-900">

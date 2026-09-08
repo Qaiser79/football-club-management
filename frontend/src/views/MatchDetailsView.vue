@@ -7,6 +7,14 @@ import { formatDate } from '@/utils/date';
 import { getMatchResult, matchResultLabels } from '@/utils/match'
 import MatchSquad from '@/components/matches/MatchSquad.vue';
 import MatchEvents from '@/components/matches/MatchEvents.vue'
+import {
+    Radio,
+    CalendarDays,
+    Trophy,
+    Clock3,
+    CircleX,
+} from '@lucide/vue'
+
 
 const route = useRoute()
 
@@ -49,6 +57,14 @@ const resultClasses = {
     win: 'bg-green-50 text-green-700',
     draw: 'bg-yellow-50 text-yellow-700',
     loss: 'bg-red-50 text-red-700',
+}
+
+const statusIcons = {
+    scheduled: CalendarDays,
+    live: Radio,
+    completed: Trophy,
+    postponed: Clock3,
+    cancelled: CircleX,
 }
 
 const formatStatus = (status) => {
@@ -167,40 +183,62 @@ onMounted(async()=> {
             </button>
         </div>
 
-        <div class="mt-6 rounded-xl border border-gray-200 bg-white px-4 py-8 shadow-sm min-[375px]:px-6">
+        <div
+            class="mt-6 overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 px-4 py-8 text-white shadow-lg min-[375px]:px-6"
+        >
             <div class="text-center">
 
-                <p class="text-sm font-medium text-gray-500">
+                <p class="text-sm font-medium text-gray-400">
                     {{ formatDate(match.match_date) }}
                 </p>
 
-            <div class="mt-4 flex flex-col items-center justify-center gap-2 min-[375px]:flex-row min-[375px]:gap-8">
-                <div>
-                    <p class="text-center text-lg font-semibold text-gray-900">
-                        {{ match.team.name }}
-                    </p>
+                <div
+                    class="mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                    :class="statusClasses[match.status?.toLowerCase()]"
+                >
+                    <component
+                        :is="statusIcons[match.status?.toLowerCase()]"
+                        class="h-3.5 w-3.5"
+                    />
+
+                    {{ match.status }}
                 </div>
 
-                <div class="text-center shrink-0">
-                    <div class="whitespace-nowrap text-2xl font-bold text-gray-900">
-                        {{ match.our_score }} - {{ match.opponent_score }}
+                <div class="mt-5 flex flex-col items-center justify-center gap-4 min-[375px]:flex-row min-[375px]:gap-8">
+
+                    <div class="min-w-0 flex-1 text-center min-[375px]:text-right">
+                        <p class="truncate text-lg font-semibold">
+                            {{ match.team.name }}
+                        </p>
                     </div>
 
-                    <span
-                        v-if="getMatchResult(match)"
-                        class="mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
-                        :class="resultClasses[getMatchResult(match)]"
-                    >
-                        {{ matchResultLabels[getMatchResult(match)] }}
-                    </span>
+                    <div class="shrink-0 text-center">
+                        <div class="whitespace-nowrap text-3xl font-bold tracking-tight">
+                            {{ match.our_score }}
+                            <span class="mx-1 text-gray-500">-</span>
+                            {{ match.opponent_score }}
+                        </div>
+
+                        <span
+                            v-if="getMatchResult(match)"
+                            class="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold"
+                            :class="resultClasses[getMatchResult(match)]"
+                        >
+                            {{ matchResultLabels[getMatchResult(match)] }}
+                        </span>
+                    </div>
+
+                    <div class="min-w-0 flex-1 text-center min-[375px]:text-left">
+                        <p class="truncate text-lg font-semibold">
+                            {{ match.opponent_name }}
+                        </p>
+                    </div>
+
                 </div>
 
-                <div>
-                    <p class="text-center text-lg font-semibold text-gray-900">
-                        {{ match.opponent_name }}
-                    </p>
-                </div>
-            </div>
+                <p class="mt-5 text-xs font-medium uppercase tracking-wider text-gray-500">
+                    {{ match.competition }}
+                </p>
 
             </div>
         </div>
@@ -263,6 +301,7 @@ onMounted(async()=> {
     <MatchEvents
         v-if="match && activeSection === 'events'"
         :match-id="match.id"
+        :match="match"
         :players="players"
         :squad-player-ids="selectedPlayerIds"
         :match-status="match.status"
