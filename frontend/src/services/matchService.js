@@ -183,3 +183,35 @@ export const updateMatchEvent = async (matchId, eventId, eventData) => {
 
     return response.json()
 }
+
+export const startMatch = async (matchId) => {
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}/start`,
+        {
+            method: 'POST',
+        }
+    )
+
+    if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to start match')
+    }
+
+    return response.json()
+}
+
+export const completeMatch = async (matchId) => {
+    const response = await fetch(
+        `${API_BASE_URL}/match/${matchId}/complete`,
+        {
+            method: 'POST',
+        }
+    )
+
+    if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to complete match')
+    }
+
+    return response.json()
+}

@@ -73,3 +73,4 @@ export const deleteClub = async (clubId) => {
 
     return response.json()
 }
+

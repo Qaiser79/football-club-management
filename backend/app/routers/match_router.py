@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Match, Team
+from app.models import Match, Team, MatchSquad
 from app.schemas.match_schema import (
     MatchCreate,
     MatchResponse,
@@ -223,7 +223,40 @@ def start_match(match_id: int, db: Session= Depends(get_db)):
             status_code=400,
             detail = "Only scheduled matches can be started"
         )
+
+    squad = (
+        db.query(MatchSquad)
+        .filter(MatchSquad.match_id == match_id)
+        .first()
+    )
+
+    if not squad:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot start match without selecting a squad"
+        )
+    
     match.status = "live"
+    db.commit()
+    db.refresh(match)
+
+    return match
+
+@router.post("/{match_id}/complete", response_model=MatchResponse)
+def complete_match(match_id: int, db: Session = Depends(get_db)):
+    match = db.query(Match).filter(Match.id == match_id).first()
+
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+
+    if match.status != "live":
+        raise HTTPException(
+            status_code=400,
+            detail="Only live matches can be completed"
+        )
+
+    match.status = "completed"
+
     db.commit()
     db.refresh(match)
 

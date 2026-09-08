@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { getMatchEvents,createMatchEvent, deleteMatchEvent, updateMatchEvent, getMatchSquad } from '@/services/matchService'
+import { getMatchEvents,createMatchEvent, deleteMatchEvent, updateMatchEvent, getMatchSquad, startMatch, completeMatch } from '@/services/matchService'
 import AppActionsMenue from '@/components/common/AppActionsMenu.vue'
 import AppModal from '@/components/common/AppModal.vue'
 
@@ -203,7 +203,10 @@ const editPlayers = computed(() => {
      })
     })
 
-const emit = defineEmits(['event-created'])
+const emit = defineEmits([
+    'event-created',
+    'match-status-changed',
+])
 
 const addEvent = async () => {
     saving.value = true
@@ -361,6 +364,28 @@ const updateEvent = async () => {
     }
 }
 
+const handleStartMatch = async () => {
+    try {
+        await startMatch(props.matchId)
+        emit('match-status-changed')
+    } catch (err) {
+        console.error(err)
+        error.value = err.message || 'Failed to start match'
+    }
+}
+
+const handleCompleteMatch = async () => {
+    try {
+        await completeMatch(props.matchId)
+        emit('match-status-changed')
+    } catch (err) {
+        console.error(err)
+        error.value = err.message || 'Failed to complete match'
+    }
+
+    return response.json()
+}
+
 onMounted(async ()=>{
     await loadSquad()
     await loadEvents()
@@ -385,15 +410,35 @@ watch(editEventType, ()=>{
     <div class="mt-6">
         <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
 
-            <h3 class="text-lg font-semibold text-gray-900">
-                Match Events
-            </h3>
+            <div class="flex flex-col gap-3 min-[375px]:flex-row min-[375px]:items-center min-[375px]:justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    Match Events
+                </h3>
+
+                <button
+                    v-if="props.matchStatus?.toLowerCase() === 'scheduled'"
+                    :disabled="squadPlayerIds.length === 0"
+                    type="button"
+                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                    @click="handleStartMatch"
+                >
+                    Start Match
+                </button>
+
+                <button
+                    v-if="props.matchStatus?.toLowerCase() === 'live'"
+                    type="button"
+                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                    @click="handleCompleteMatch"
+                >
+                    Complete Match
+                </button>
+            </div>
 
             <div
                 v-if="props.matchStatus?.toLowerCase() === 'live'"
                 class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4"
             >
-
                 <h4 class="text-sm font-semibold text-gray-900">
                     Add Event
                 </h4>
@@ -493,7 +538,7 @@ watch(editEventType, ()=>{
                             saving ||
                             !selectedPlayerId ||
                             !selectedEventType ||
-                            !selectedEventMinute ||
+                            !eventMinute ||
                             (selectedEventType === 'substitution' && !selectedRelatedPlayerId)
                         "
                         @click="addEvent"

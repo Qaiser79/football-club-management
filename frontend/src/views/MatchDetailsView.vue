@@ -267,6 +267,7 @@ onMounted(async()=> {
         :squad-player-ids="selectedPlayerIds"
         :match-status="match.status"
         @event-created="loadMatch"
+        @match-status-changed="loadMatch"
     />
 
 
