@@ -54,6 +54,15 @@ const statusClasses = {
     postponed: 'bg-yellow-500/15 text-yellow-300 ring-1 ring-yellow-400/30',
 }
 
+const eventClasses = {
+    goal: 'border-green-200 bg-green-50',
+    assist: 'border-blue-200 bg-blue-50',
+    yellow_card: 'border-yellow-200 bg-yellow-50',
+    red_card: 'border-red-200 bg-red-50',
+    substitution: 'border-purple-200 bg-purple-50',
+    foul: 'border-gray-200 bg-gray-50',
+}
+
 const resultClasses = {
     win: 'bg-green-50 text-green-700',
     draw: 'bg-yellow-50 text-yellow-700',
@@ -319,13 +328,19 @@ onMounted(async()=> {
 
 
     <div
-        v-if="match && activeSection === 'overview' && importantEvents.length"
+        v-if="match && activeSection === 'overview'"
         class="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
     >
         <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900">
-                Key Events
-            </h3>
+            <div class="flex items-center gap-2">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    Key Events
+                </h3>
+
+                <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">
+                    {{ importantEvents.length }}
+                </span>
+            </div>
 
             <button
                 type="button"
@@ -336,22 +351,26 @@ onMounted(async()=> {
             </button>
         </div>
 
-        <div class="mt-4 space-y-3">
+        <div
+            v-if="importantEvents.length"
+            class="mt-4 space-y-3"
+        >
             <div
                 v-for="event in importantEvents"
                 :key="event.id"
-                class="flex items-center gap-3 rounded-lg bg-gray-50 px-3 py-2"
+                class="flex items-center gap-3 rounded-lg border px-3 py-3 shadow-sm"
+                :class="eventClasses[event.event_type] || 'border-gray-100 bg-white'"
             >
-                <span class="w-10 text-sm font-semibold text-gray-500">
+                <span class="w-10 shrink-0 text-sm font-semibold text-gray-500">
                     {{ event.minute ? `${event.minute}'` : '-' }}
+                </span>
+
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-base shadow-sm">
+                    {{ eventIcons[event.event_type] }}
                 </span>
 
                 <span class="text-sm font-medium text-gray-900">
                     {{ event.player.name }}
-                </span>
-
-                <span class="text-base">
-                    {{ eventIcons[event.event_type] }}
                 </span>
 
                 <span
@@ -361,6 +380,19 @@ onMounted(async()=> {
                     → {{ event.related_player.name }}
                 </span>
             </div>
+        </div>
+
+        <div
+            v-else
+            class="mt-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center"
+        >
+            <p class="text-sm font-medium text-gray-700">
+                No key events yet
+            </p>
+
+            <p class="mt-1 text-xs text-gray-500">
+                Goals, cards, and substitutions will appear here.
+            </p>
         </div>
     </div>
 
