@@ -24,6 +24,7 @@ const columns = [
 
 const statusClasses = {
     scheduled: 'bg-blue-50 text-blue-700',
+    live: 'bg-red-50 text-red-700',
     completed: 'bg-green-50 text-green-700',
     cancelled: 'bg-red-50 text-red-700',
     postponed: 'bg-yellow-50 text-yellow-700',
@@ -234,24 +235,48 @@ onUnmounted(() => {
                     <span
                         v-if="row.our_score !== null && row.our_score !== undefined
                             && row.opponent_score !== null && row.opponent_score !== undefined"
-                        class="font-semibold text-gray-900"
+                        class="inline-flex items-center gap-2 font-bold text-gray-900"
                     >
-                        {{ row.our_score }} - {{ row.opponent_score }}
+                        <span class="text-base">
+                            {{ row.our_score }}
+                        </span>
+
+                        <span class="text-gray-300">
+                            –
+                        </span>
+
+                        <span class="text-base">
+                            {{ row.opponent_score }}
+                        </span>
                     </span>
 
                     <span
                         v-else
                         class="text-gray-400"
                     >
-                        -
+                        —
+                    </span>
+                </template>
+
+                <!-- Our Team -->
+                <template #cell-team.name="{ row }">
+                    <span class="font-semibold text-gray-900">
+                        {{ row.team.name }}
+                    </span>
+                </template>
+
+                <!-- Opponent -->
+                <template #cell-opponent_name="{ row }">
+                    <span class="font-medium text-gray-900">
+                        {{ row.opponent_name }}
                     </span>
                 </template>
 
                 <!-- match result -->
-                 <template #cell-result="{row}">
+                 <template #cell-result="{ row }">
                     <span
                         v-if="getMatchResult(row)"
-                        class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                        class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
                         :class="resultClasses[getMatchResult(row)]"
                     >
                         {{ resultLabels[getMatchResult(row)] }}
@@ -263,7 +288,7 @@ onUnmounted(() => {
                     >
                         —
                     </span>
-                 </template>
+                </template>
 
                 <!-- Status -->
                 <template #cell-status="{ value }">
