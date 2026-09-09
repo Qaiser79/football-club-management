@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, onUnmounted } from 'vue'
 import AppTable from '@/components/common/AppTable.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
+import AppSelect from '@/components/common/AppSelect.vue'
 import AppSearch from '@/components/common/AppSearch.vue'
 import { getMatches, createMatch, updateMatch,deleteMatch } from '@/services/matchService'
 import MatchForm from '@/components/matches/MatchForm.vue'
@@ -40,6 +41,7 @@ const formatStatus = (status) => {
 
 const matches = ref([])
 const search = ref('')
+const statusFilter = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const totalPages = ref(1)
@@ -58,6 +60,7 @@ const loadMatches = async () => {
             page: currentPage.value,
             limit: pageSize.value,
             search: search.value,
+            status: statusFilter.value,
         })
 
         matches.value = data.items
@@ -171,6 +174,11 @@ watch(search, ()=> {
     }, 500)
 })
 
+watch(statusFilter, () => {
+    currentPage.value = 1
+    loadMatches()
+})
+
 onMounted(() => {
     loadMatches()
 })
@@ -217,11 +225,27 @@ onUnmounted(() => {
             Loading matches...
         </div>
 
-        <div class="mt-6 max-w-sm">
-            <AppSearch
-                v-model="search"
-                placeholder="Search matches..."
-            />
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div class="w-full sm:max-w-sm">
+                <AppSearch
+                    v-model="search"
+                    placeholder="Search matches..."
+                />
+            </div>
+
+            <div class="w-full sm:w-48">
+                <AppSelect
+                    v-model="statusFilter"
+                    :options="[
+                        { label: 'All Statuses', value: '' },
+                        { label: 'Scheduled', value: 'scheduled' },
+                        { label: 'Live', value: 'live' },
+                        { label: 'Completed', value: 'completed' },
+                        { label: 'Postponed', value: 'postponed' },
+                        { label: 'Cancelled', value: 'cancelled' },
+                    ]"
+                />
+            </div>
         </div>
 
         <div class="mt-6">

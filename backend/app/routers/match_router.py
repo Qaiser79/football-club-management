@@ -53,6 +53,7 @@ def get_matches(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=100),
     search: str | None= None,
+    status: str | None = None,
     sort: str | None = None,
     db: Session=Depends(get_db)
 ):
@@ -68,6 +69,9 @@ def get_matches(
             | Match.venue.ilike(search_pattern)
             | Match.status.ilike(search_pattern)
         )
+
+    if status:
+        query=query.filter(Match.status == status)
     
     if sort and sort.lstrip("-") not in [
         "match_date",

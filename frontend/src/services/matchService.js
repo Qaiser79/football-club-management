@@ -4,11 +4,13 @@ export const getMatches = async ({
     page = 1,
     limit = 10,
     search = '',
+    status = '',
 }={})=> {
     const params = new URLSearchParams({
         page,
         limit,
         search,
+        status,
     })
 
     const response = await fetch (
