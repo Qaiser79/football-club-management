@@ -47,10 +47,11 @@ const importantEvents = computed(() => {
 })
 
 const statusClasses = {
-    scheduled: 'bg-blue-50 text-blue-700',
-    completed: 'bg-green-50 text-green-700',
-    cancelled: 'bg-red-50 text-red-700',
-    postponed: 'bg-yellow-50 text-yellow-700',
+    scheduled: 'bg-blue-500/15 text-blue-300 ring-1 ring-blue-400/30',
+    live: 'bg-red-500/15 text-red-300 ring-1 ring-red-400/30',
+    completed: 'bg-green-500/15 text-green-300 ring-1 ring-green-400/30',
+    cancelled: 'bg-red-500/15 text-red-300 ring-1 ring-red-400/30',
+    postponed: 'bg-yellow-500/15 text-yellow-300 ring-1 ring-yellow-400/30',
 }
 
 const resultClasses = {
@@ -199,6 +200,7 @@ onMounted(async()=> {
                     <component
                         :is="statusIcons[match.status?.toLowerCase()]"
                         class="h-3.5 w-3.5"
+                        :class="match.status?.toLowerCase() === 'live' ? 'animate-pulse' : ''"
                     />
 
                     {{ match.status }}
@@ -207,15 +209,15 @@ onMounted(async()=> {
                 <div class="mt-5 flex flex-col items-center justify-center gap-4 min-[375px]:flex-row min-[375px]:gap-8">
 
                     <div class="min-w-0 flex-1 text-center min-[375px]:text-right">
-                        <p class="truncate text-lg font-semibold">
+                        <p class="truncate text-base font-semibold text-gray-200 sm:text-lg">
                             {{ match.team.name }}
                         </p>
                     </div>
 
                     <div class="shrink-0 text-center">
-                        <div class="whitespace-nowrap text-3xl font-bold tracking-tight">
+                        <div class="whitespace-nowrap text-4xl font-extrabold tracking-tight sm:text-5xl">
                             {{ match.our_score }}
-                            <span class="mx-1 text-gray-500">-</span>
+                            <span class="mx-2 text-gray-500">-</span>
                             {{ match.opponent_score }}
                         </div>
 
@@ -229,16 +231,22 @@ onMounted(async()=> {
                     </div>
 
                     <div class="min-w-0 flex-1 text-center min-[375px]:text-left">
-                        <p class="truncate text-lg font-semibold">
+                        <p class="truncate text-base font-semibold text-gray-200 sm:text-lg">
                             {{ match.opponent_name }}
                         </p>
                     </div>
 
                 </div>
 
-                <p class="mt-5 text-xs font-medium uppercase tracking-wider text-gray-500">
-                    {{ match.competition }}
-                </p>
+                <div class="mt-5 flex items-center justify-center gap-3">
+                    <span class="h-px w-8 bg-gray-700"></span>
+
+                    <p class="text-xs font-medium uppercase tracking-wider text-gray-400">
+                        {{ match.competition }}
+                    </p>
+
+                    <span class="h-px w-8 bg-gray-700"></span>
+                </div>
 
             </div>
         </div>
@@ -246,14 +254,14 @@ onMounted(async()=> {
     </div>
 
     <div v-if="match" class="mt-6 border-b border-gray-200">
-        <nav class="flex gap-6 overflow-x-auto">
+        <nav class="flex gap-8 overflow-x-auto">
             <button
                 type="button"
-                class="whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium"
+                class="whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium"
                 :class="
                     activeSection === 'overview'
                         ? 'border-gray-900 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        : 'border-transparent text-gray-400 hover:text-gray-700'
                 "
                 @click="activeSection = 'overview'"
             >
@@ -262,11 +270,11 @@ onMounted(async()=> {
 
             <button
                 type="button"
-                class="whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium"
+                class="whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium"
                 :class="
                     activeSection === 'squad'
                         ? 'border-gray-900 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        : 'border-transparent text-gray-400 hover:text-gray-700'
                 "
                 @click="activeSection = 'squad'"
             >
@@ -275,11 +283,11 @@ onMounted(async()=> {
 
             <button
                 type="button"
-                class="whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium"
+                class="whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium"
                 :class="
                     activeSection === 'events'
                         ? 'border-gray-900 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        : 'border-transparent text-gray-400 hover:text-gray-700'
                 "
                 @click="activeSection = 'events'"
             >
