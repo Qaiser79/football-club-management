@@ -259,17 +259,17 @@ onUnmounted(() => {
                     <span
                         v-if="row.our_score !== null && row.our_score !== undefined
                             && row.opponent_score !== null && row.opponent_score !== undefined"
-                        class="inline-flex items-center gap-2 font-bold text-gray-900"
+                        class="inline-flex items-center rounded-lg bg-gray-50 px-3 py-1.5 text-sm font-bold text-gray-900 ring-1 ring-gray-100"
                     >
-                        <span class="text-base">
+                        <span>
                             {{ row.our_score }}
                         </span>
 
-                        <span class="text-gray-300">
+                        <span class="mx-2 text-gray-300">
                             –
                         </span>
 
-                        <span class="text-base">
+                        <span>
                             {{ row.opponent_score }}
                         </span>
                     </span>
