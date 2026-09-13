@@ -22,7 +22,7 @@ const props= defineProps({
         v-if="props.open"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
     >
-        <div class="w-full max-w-md rounded-xl bg-white shadow-xl">
+        <div class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl bg-white shadow-xl">
             <!-- Header -->
             <div class="flex items-start justify-between border-b border-gray-100 px-6 py-4">
                 <div>
@@ -49,7 +49,7 @@ const props= defineProps({
             </div>
 
             <!-- Body -->
-            <div class="px-6 py-5">
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                 <slot />
             </div>
 

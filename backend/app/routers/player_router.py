@@ -32,6 +32,17 @@ def create_player(
         team_id=player.team_id,
         name=player.name,
         position=player.position,
+        preferred_foot=player.preferred_foot,
+        shirt_number=player.shirt_number,
+        date_of_birth=player.date_of_birth,
+        nationality=player.nationality,
+        phone=player.phone,
+        email=player.email,
+        bio=player.bio,
+        height=player.height,
+        weight=player.weight,
+        joined_date=player.joined_date,
+        profile_image=player.profile_image,
         status=player.status
     )
     db.add(new_player)
@@ -189,6 +200,17 @@ def update_player(
     player.team_id=player_data.team_id
     player.name=player_data.name
     player.position=player_data.position
+    player.preferred_foot = player_data.preferred_foot
+    player.shirt_number = player_data.shirt_number
+    player.date_of_birth = player_data.date_of_birth
+    player.nationality = player_data.nationality
+    player.phone = player_data.phone
+    player.email = player_data.email
+    player.bio = player_data.bio
+    player.height = player_data.height
+    player.weight = player_data.weight
+    player.joined_date = player_data.joined_date
+    player.profile_image = player_data.profile_image
     player.status=player_data.status
     db.commit()
     db.refresh(player)

@@ -27,6 +27,17 @@ const form = reactive({
     name: '',
     team_id: null,
     position: '',
+    preferred_foot: '',
+    shirt_number: null,
+    date_of_birth: null,
+    nationality: '',
+    phone: '',
+    email: '',
+    bio: '',
+    height: null,
+    weight: null,
+    joined_date: null,
+    profile_image: '',
     status: 'Active',
 })
 
@@ -58,6 +69,17 @@ watch(
         form.name = player?.name ?? ''
         form.team_id = player?.team_id ?? null
         form.position = player?.position ?? ''
+        form.preferred_foot = player?.preferred_foot ?? ''
+        form.shirt_number = player?.shirt_number ?? null
+        form.date_of_birth = player?.date_of_birth ?? null
+        form.nationality = player?.nationality ?? ''
+        form.phone = player?.phone ?? ''
+        form.email = player?.email ?? ''
+        form.bio = player?.bio ?? ''
+        form.height = player?.height ?? null
+        form.weight = player?.weight ?? null
+        form.joined_date = player?.joined_date ?? null
+        form.profile_image = player?.profile_image ?? ''
         form.status = player?.status ?? 'Active'
     },
     {immediate: true}
@@ -108,6 +130,104 @@ const save = () => {
                 <AppInput
                     v-model="form.position"
                     placeholder="Position"
+                />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Preferred Foot
+                </label>
+
+                <AppSelect
+                    v-model="form.preferred_foot"
+                    :options="[
+                        { value: 'Right', label: 'Right' },
+                        { value: 'Left', label: 'Left' },
+                        { value: 'Both', label: 'Both' },
+                    ]"
+                    placeholder="Select preferred foot"
+                />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Shirt Number
+                </label>
+
+                <AppInput
+                    v-model="form.shirt_number"
+                    type="number"
+                    placeholder="Shirt number"
+                />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Date of Birth
+                </label>
+
+                <AppInput
+                    v-model="form.date_of_birth"
+                    type="date"
+                />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Nationality
+                </label>
+
+                <AppInput
+                    v-model="form.nationality"
+                    placeholder="Nationality"
+                />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Phone
+                </label>
+
+                <AppInput
+                    v-model="form.phone"
+                    type="tel"
+                    placeholder="Phone number"
+                />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Email
+                </label>
+
+                <AppInput
+                    v-model="form.email"
+                    type="email"
+                    placeholder="Email address"
+                />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Height (cm)
+                </label>
+
+                <AppInput
+                    v-model="form.height"
+                    type="number"
+                    placeholder="Height in cm"
+                />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700">
+                    Weight (kg)
+                </label>
+
+                <AppInput
+                    v-model="form.weight"
+                    type="number"
+                    placeholder="Weight in kg"
                 />
             </div>
 
