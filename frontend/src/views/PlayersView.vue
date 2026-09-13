@@ -17,7 +17,7 @@ const columns = [
 
 const players = ref([])
 const currentPage = ref(1)
-const pageSize = ref(2)
+const pageSize = ref(10)
 const totalPages = ref(1)
 const loading = ref(false)
 const error = ref(null)
