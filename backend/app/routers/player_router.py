@@ -1,4 +1,4 @@
-from fastapi import HTTPException, APIRouter, Depends, Query
+from fastapi import HTTPException, APIRouter, Depends, Query,UploadFile, File
 from sqlalchemy.orm import Session
 from app.database import get_db
 from sqlalchemy import func
@@ -6,6 +6,10 @@ from sqlalchemy import func
 from app.models.team import Team
 from app.models.player import Player
 from app.schemas.player_schema import PlayerCreate, PlayerResponse, PlayerUpdate,PlayerListResponse
+
+import os
+import shutil
+from uuid import uuid4
 
 router=APIRouter(
     prefix="/player",
@@ -49,6 +53,58 @@ def create_player(
     db.commit()
     db.refresh(new_player)
     return new_player
+
+@router.post("/{player_id}/image")
+def upload_player_image(
+    player_id: int,
+    file: UploadFile = File(...),
+    db: Session= Depends(get_db)
+):
+    player = (
+        db.query(Player)
+        .filter(Player.id==player_id)
+        .first()
+    )
+
+    if not player:
+        raise HTTPException(
+            status_code=404,
+            detail="Player not found"
+        )
+
+    allowed_types = (
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+    )
+
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Only JPEG, PNG, and WebP images are allowed"
+        )
+    extension = os.path.splitext(file.filename or "")[1].lower()
+    if not extension:
+        extension = ".jpg"
+
+    filename= f"{uuid4()}{extension}"
+
+    upload_dir = "uploads/players"
+    os.makedirs(upload_dir,exist_ok=True)
+
+    file_path = os.path.join(upload_dir,filename)
+
+    with open(file_path,"wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    player.profile_image = f"/uploads/players/{filename}"
+    db.commit()
+    db.refresh(player)
+
+    return {
+        "message": "Player image uploaded successfully",
+        "profile_image": player.profile_image
+    }
 
 @router.get("/", response_model=PlayerListResponse)
 def get_players(

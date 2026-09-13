@@ -2,7 +2,7 @@
 import { ref, onMounted,watch, onUnmounted } from 'vue'
 import AppTable from '@/components/common/AppTable.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
-import { getPlayers,deletePlayer,updatePlayer,createPlayer } from '@/services/playerService'
+import { getPlayers,deletePlayer,updatePlayer,createPlayer,uploadPlayerImage } from '@/services/playerService'
 import AppModal from '@/components/common/AppModal.vue'
 import PlayerForm from '@/components/players/PlayerForm.vue'
 import AppActionsMenu from '@/components/common/AppActionsMenu.vue'
@@ -73,15 +73,20 @@ const handleEdit = (player) => {
     editingPlayer.value = { ...player }
 }
 
-const savePlayer = async (formData) => {
+const savePlayer = async ({formData, imageFile}) => {
     try {
         await updatePlayer(
             editingPlayer.value.id,
             formData
         )
+        if (imageFile) {
+            await uploadPlayerImage(
+                editingPlayer.value.id,
+                imageFile
+            )
+        }
 
         editingPlayer.value = null
-
         await loadPlayers()
     } catch (err) {
         console.error(err)
@@ -91,9 +96,13 @@ const savePlayer = async (formData) => {
 
 
 
-const addPlayer = async (formData) => {
+const addPlayer = async ({formData, imageFile}) => {
     try {
-        await createPlayer(formData)
+        const player = await createPlayer(formData)
+
+        if (imageFile) {
+            await uploadPlayerImage(player.id,imageFile)
+        }
 
         showAddPlayer.value = false
         currentPage.value = 1

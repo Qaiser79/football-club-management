@@ -90,3 +90,22 @@ export const createPlayer = async (playerData) => {
     }
     return response.json()
 }
+
+export const uploadPlayerImage = async (playerId, file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch(
+        `${API_BASE_URL}/player/${playerId}/image`,
+        {
+            method: 'POST',
+            body: formData,
+        }
+    )
+
+    if (!response.ok){
+        throw new Error('Failed to upload player image')
+    }
+
+    return response.json()
+}

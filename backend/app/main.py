@@ -7,6 +7,7 @@ from app.routers import player_router
 from app.routers import match_router
 from app.routers import match_squad_router
 from app.routers import match_event_router
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="Football Club Management API")
 
@@ -19,6 +20,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads"
 )
 @app.get("/")
 def root():
