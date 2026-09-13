@@ -41,6 +41,18 @@ export const getPlayers = async({
     return response.json()
 }
 
+export const getPlayer= async (playerId)=> {
+    const response = await fetch(
+        `${API_BASE_URL}/player/${playerId}`
+    )
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch player')
+    }
+
+    return response.json()
+}
+
 export const deletePlayer = async (playerId) => {
     const response = await fetch(
         `${API_BASE_URL}/player/${playerId}`,

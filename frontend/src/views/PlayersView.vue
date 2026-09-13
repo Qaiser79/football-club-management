@@ -7,6 +7,7 @@ import AppModal from '@/components/common/AppModal.vue'
 import PlayerForm from '@/components/players/PlayerForm.vue'
 import AppActionsMenu from '@/components/common/AppActionsMenu.vue'
 import AppSearch from '@/components/common/AppSearch.vue'
+import { useRouter } from 'vue-router'
 
 const columns = [
     { key: 'name', label: 'Player' },
@@ -24,6 +25,12 @@ const error = ref(null)
 const editingPlayer = ref(null)
 const showAddPlayer = ref(false)
 const search = ref('')
+
+const router = useRouter()
+
+const openPlayer = (player) => {
+    router.push(`/players/${player.id}`)
+}
 
 const loadPlayers = async () => {
     loading.value = true
@@ -216,6 +223,7 @@ onMounted(() => {
                     <AppActionsMenu
                         :row-index="rowIndex"
                         :total-rows="players.length"
+                        @view="openPlayer(row)"
                         @edit="handleEdit(row)"
                         @delete="handleDelete(row)"
                     />
