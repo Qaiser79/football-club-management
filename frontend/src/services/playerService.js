@@ -69,6 +69,8 @@ export const deletePlayer = async (playerId) => {
 }
 
 export const updatePlayer = async (playerId, playerData)=>{
+    console.log('PLAYER ID:', playerId)
+    console.log('PLAYER DATA:', playerData)
     const response = await fetch(
         `${API_BASE_URL}/player/${playerId}`,
         {

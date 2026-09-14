@@ -1,8 +1,9 @@
 <script setup>
 import {ref, onMounted} from 'vue'
-import { useRoute, useRouter } from 'vue-router';
-import {getPlayer} from '@/services/playerService'
-
+import { useRoute, useRouter } from 'vue-router'
+import {getPlayer, updatePlayer, uploadPlayerImage} from '@/services/playerService'
+import AppModal from '@/components/common/AppModal.vue'
+import PlayerForm from '@/components/players/PlayerForm.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,6 +11,8 @@ const router = useRouter()
 const player = ref(null)
 const loading = ref(true)
 const error = ref(null)
+
+const showEditPlayer = ref(false)
 
 const loadPlayer = async () => {
     loading.value = true
@@ -27,6 +30,22 @@ const loadPlayer = async () => {
 
 const goBack = () => {
     router.push('/players')
+}
+
+const handleEditSave = async ({formData, imageFile}) => {
+    try {
+        await updatePlayer(player.value.id, formData)
+
+        if (imageFile) {
+            await uploadPlayerImage(player.value.id, imageFile)
+        }
+
+        showEditPlayer.value = false
+        await loadPlayer()
+    } catch (err) {
+        console.error(err)
+        error.value = 'Failed to update player.'
+    }
 }
 
 onMounted(()=> {
@@ -118,6 +137,14 @@ onMounted(()=> {
                             </span>
                         </div>
                     </div>
+                    <!-- Edit Player -->
+                    <button
+                        type="button"
+                        class="shrink-0 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                        @click="showEditPlayer = true"
+                    >
+                        Edit Player
+                    </button>
 
                     <!-- Shirt Number -->
                     <div
@@ -300,6 +327,37 @@ onMounted(()=> {
                 {{ player.bio || 'No biography has been added for this player.' }}
             </p>
         </div>
+
+        <AppModal
+            :open="showEditPlayer"
+            title="Edit Player"
+            @close="showEditPlayer = false"
+        >
+            <PlayerForm
+                :player="player"
+                @save="handleEditSave"
+                @cancel="showEditPlayer = false"
+            />
+
+            <template #footer>
+                <button
+                    type="button"
+                    class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                    @click="showEditPlayer = false"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    form="player-form"
+                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+                >
+                    Save Changes
+                </button>
+            </template>
+
+        </AppModal>
 
     </div>
 </template>
