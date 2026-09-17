@@ -203,3 +203,27 @@ def update_coach(
     db.refresh(coach)
 
     return coach
+
+@router.delete("/{coach_id}")
+def delete_coach(
+    coach_id: int,
+    db: Session=Depends(get_db)
+):
+    coach = (
+        db.query(Coach)
+        .filter(Coach.id == coach_id)
+        .first()
+    )
+
+    if not coach:
+        raise HTTPException(
+            status_code=404,
+            detail="Coach not found"
+        )
+
+    db.delete(coach)
+    db.commit()
+
+    return {
+        "message": "Coach deleted successfully"
+    }
