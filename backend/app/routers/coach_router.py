@@ -9,6 +9,7 @@ from app.schemas.coach_schema import (
     CoachCreate,
     CoachResponse,
     CoachListResponse,
+    CoachUpdate
 )
 
 router = APIRouter(
@@ -137,3 +138,68 @@ def get_coaches(
         "pages": pages
     }
 
+@router.get("/{coach_id}", response_model=CoachResponse)
+def get_coach(
+    coach_id: int,
+    db: Session = Depends(get_db)
+):
+    coach = (
+        db.query(Coach)
+        .filter(Coach.id == coach_id)
+        .first()
+    )
+
+    if not coach:
+        raise HTTPException(
+            status_code=404,
+            detail="Coach not found"
+        )
+
+    return coach
+
+@router.put("/{coach_id}", response_model=CoachResponse)
+def update_coach(
+    coach_id: int,
+    coach_data: CoachUpdate,
+    db: Session = Depends(get_db)
+):
+    coach = (
+        db.query(Coach)
+        .filter(Coach.id == coach_id)
+        .first()
+    )
+
+    if not coach:
+        raise HTTPException(
+            status_code=404,
+            detail="Coach not found"
+        )
+
+    team = (
+        db.query(Team)
+        .filter(Team.id == coach_data.team_id)
+        .first()
+    )
+
+    if not team:
+        raise HTTPException (
+            status_code=404,
+            details="Team not found"
+        )
+
+    coach.team_id = coach_data.team_id
+    coach.name = coach_data.name
+    coach.role = coach_data.role
+    coach.date_of_birth = coach_data.date_of_birth
+    coach.nationality = coach_data.nationality
+    coach.phone = coach_data.phone
+    coach.email = coach_data.email
+    coach.bio = coach_data.bio
+    coach.joined_date = coach_data.joined_date
+    coach.status = coach_data.status
+    coach.profile_image = coach_data.profile_image
+
+    db.commit()
+    db.refresh(coach)
+
+    return coach
