@@ -1,6 +1,9 @@
-from fastapi import HTTPException, APIRouter, Depends, Query
+from fastapi import HTTPException, APIRouter, Depends, Query, File, UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+import os
+import shutil
+from uuid import uuid4 
 
 from app.database import get_db
 from app.models.team import Team
@@ -53,6 +56,60 @@ def create_coach(
     db.refresh(new_coach)
 
     return new_coach
+
+@router.post("/{coach_id}/image")
+def upload_coach_image(
+    coach_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    coach = (
+        db.query(Coach)
+        .filter(Coach.id == coach_id)
+        .first()
+    )
+
+    if not coach:
+        raise HTTPException(
+            status_code=404,
+            detail="Coach not found"
+        )
+
+    allowed_types = (
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+    )
+
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Only JPEG, PNG, and WebP images are allowed"
+        )
+
+    extension = os.path.splitext(file.filename or "")[1].lower()
+
+    if not extension:
+        extension = ".jpg"
+
+    filename = f"{uuid4()}{extension}"
+
+    upload_dir = "uploads/coaches"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    file_path = os.path.join(upload_dir, filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    coach.profile_image = f"/uploads/coaches/{filename}"
+    db.commit()
+    db.refresh(coach)
+
+    return {
+        "message": "Coach image uploaded successfully",
+        "profile_image": coach.profile_image
+    }
 
 @router.get("/", response_model=CoachListResponse)
 def get_coaches(
