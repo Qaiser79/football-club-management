@@ -2,7 +2,7 @@
 import {ref,onMounted, watch, onUnmounted} from 'vue'
 import AppTable from '@/components/common/AppTable.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
-import { getCoaches, deleteCoach, createCoach, uploadCoachImage } from '@/services/coachService'
+import { getCoaches, getCoach, deleteCoach, createCoach,updateCoach, uploadCoachImage } from '@/services/coachService'
 import AppSearch from '@/components/common/AppSearch.vue';
 import AppModal from '@/components/common/AppModal.vue'
 import CoachForm from '@/components/coaches/CoachForm.vue'
@@ -26,7 +26,8 @@ const error = ref(null)
 const search = ref('')
 const router = useRouter()
 const showAddCoach = ref(false)
-
+const showEditCoach = ref(false)
+const selectedCoach = ref(null)
 
 const loadCoaches = async () => {
     loading.value=true
@@ -58,8 +59,18 @@ const openCoach = (coach) => {
     router.push(`/coaches/${coach.id}`)
 }
 
-const handleEdit = (coach)=> {
-    console.log('Edit coach:', coach)
+const handleEdit = async (coach)=> {
+    console.log('EDIT CLICKED:', coach)
+    try {
+        selectedCoach.value = await getCoach(coach.id)
+        console.log('COACH LOADED:', selectedCoach.value)
+
+        showEditCoach.value = true
+        console.log('MODAL STATE:', showEditCoach.value)
+    } catch (err) {
+        console.error(err)
+        error.value = 'Failed to load coach.'
+    }
 }
 
 const handleDelete = async (coach) => {
@@ -94,6 +105,25 @@ const addCoach = async ({ formData, imageFile}) => {
     }
 
 }
+
+const saveCoach = async ({formData, imageFile}) => {
+    try {
+        const coach = await updateCoach(selectedCoach.value.id, formData)
+
+        if (imageFile) {
+            await uploadCoachImage(coach.id, imageFile)
+        }
+
+        showEditCoach.value = false 
+        selectedCoach.value = null
+
+        await loadCoaches()
+    } catch (err) {
+        console.error(err)
+        error.value = 'Failed to update coach.'
+    }
+}
+
 
 
 let searchTimeout = null
@@ -248,6 +278,37 @@ onUnmounted(()=>{
                     class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
                 >
                     Add Coach
+                </button>
+            </template>
+        </AppModal>
+
+        <AppModal
+            :open="showEditCoach"
+            title="Edit Coach"
+            description="Update coach information."
+            @close="showEditCoach = false"
+        >
+            <CoachForm
+                id="edit-coach-form"
+                :coach="selectedCoach"
+                @save="saveCoach"
+            />
+
+            <template #footer>
+                <button
+                    type="button"
+                    class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    @click="showEditCoach = false"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    form="edit-coach-form"
+                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                >
+                    Save Changes
                 </button>
             </template>
         </AppModal>
