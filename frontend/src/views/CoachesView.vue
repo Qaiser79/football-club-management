@@ -2,10 +2,13 @@
 import {ref,onMounted, watch, onUnmounted} from 'vue'
 import AppTable from '@/components/common/AppTable.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
-import { getCoaches, deleteCoach } from '@/services/coachService'
+import { getCoaches, deleteCoach, createCoach, uploadCoachImage } from '@/services/coachService'
 import AppSearch from '@/components/common/AppSearch.vue';
+import AppModal from '@/components/common/AppModal.vue'
+import CoachForm from '@/components/coaches/CoachForm.vue'
 import AppActionsMenu from '@/components/common/AppActionsMenu.vue'
 import { useRouter } from 'vue-router'
+
 
 const columns = [
     {key: 'name', label: 'Coach'},
@@ -22,6 +25,8 @@ const loading = ref(false)
 const error = ref(null)
 const search = ref('')
 const router = useRouter()
+const showAddCoach = ref(false)
+
 
 const loadCoaches = async () => {
     loading.value=true
@@ -72,6 +77,25 @@ const handleDelete = async (coach) => {
     }
 }
 
+const addCoach = async ({ formData, imageFile}) => {
+    try {
+        const coach = await createCoach(formData)
+
+        if (imageFile) {
+            await uploadCoachImage(coach.id, imageFile)
+        }
+
+        showAddCoach.value=false
+        currentPage.value=1
+        await loadCoaches()
+    } catch (err) {
+        console.error(err)
+        error.value = 'Failed to create coach.'
+    }
+
+}
+
+
 let searchTimeout = null
 
 watch(search, () =>{
@@ -109,6 +133,7 @@ onUnmounted(()=>{
 
             <button
                 type="button"
+                @click="showAddCoach=true"
                 class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
             >
                 Add Coach
@@ -184,6 +209,8 @@ onUnmounted(()=>{
 
             </AppTable>
 
+
+
             <div
                 v-if="loading"
                 class="absolute inset-0 flex items-center justify-center bg-white/60"
@@ -193,6 +220,37 @@ onUnmounted(()=>{
                 </span>
             </div>
         </div>
+
+        <AppModal
+            :open="showAddCoach"
+            title="Add Coach"
+            description="Add a new football coach."
+            @close="showAddCoach = false"
+        >
+            <CoachForm
+                id="add-coach-form"
+                :coach="null"
+                @save="addCoach"
+            />
+
+            <template #footer>
+                <button
+                    type="button"
+                    class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    @click="showAddCoach = false"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    form="add-coach-form"
+                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                >
+                    Add Coach
+                </button>
+            </template>
+        </AppModal>
 
         <AppPagination
             :current-page="currentPage"
