@@ -28,6 +28,7 @@ const search = ref('')
 const role = ref('')
 const sort = ref('')
 const teamId = ref(null)
+const status = ref('')
 
 const router = useRouter()
 const showAddCoach = ref(false)
@@ -65,6 +66,7 @@ const loadCoaches = async () => {
             name: search.value,
             role: role.value,
             sort: sort.value,
+            status: status.value,
             teamId: teamId.value,
 
         })
@@ -157,7 +159,7 @@ const saveCoach = async ({formData, imageFile}) => {
 
 let searchTimeout = null
 
-watch([search,role, sort,teamId], () =>{
+watch([search,role, sort,teamId,status], () =>{
     currentPage.value=1
     clearTimeout(searchTimeout)
 
@@ -233,6 +235,18 @@ onUnmounted(()=>{
                         ...teamOptions,
                     ]"
                     placeholder="Filter by team"
+                />
+            </div>
+
+            <div class="w-full sm:w-56">
+                <AppSelect
+                    v-model="status"
+                    :options="[
+                        { value: '', label: 'All Statuses' },
+                        { value: 'Active', label: 'Active' },
+                        { value: 'Inactive', label: 'Inactive' },
+                    ]"
+                    placeholder="Filter by status"
                 />
             </div>
 

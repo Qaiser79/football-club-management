@@ -119,6 +119,7 @@ def get_coaches(
     role: str | None = None,
     sort: str | None = None,
     team_id: int | None = None,
+    status: str | None = None,
     db: Session = Depends(get_db)
 ):
     offset = (page - 1) * limit
@@ -129,6 +130,8 @@ def get_coaches(
         query = query.filter(
             func.lower(Coach.role) == role.lower()
         )
+    if status:
+        query = query.filter(func.lower(Coach.status) == status.lower())
 
     if team_id:
         team = (

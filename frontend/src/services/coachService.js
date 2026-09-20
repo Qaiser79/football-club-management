@@ -6,6 +6,7 @@ export const getCoaches = async ({
     name = '',
     role = '',
     teamId = null,
+    status = '',
     sort = '',
 }={}) => {
     const params = new URLSearchParams({
@@ -23,6 +24,10 @@ export const getCoaches = async ({
 
     if (teamId !== null && teamId !=='') {
         params.append('team_id', teamId)
+    }
+
+    if (status) {
+        params.append('status', status)
     }
 
     if (sort) {
