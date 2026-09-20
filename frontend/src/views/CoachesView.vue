@@ -1,5 +1,5 @@
 <script setup>
-import {ref,onMounted, watch, onUnmounted} from 'vue'
+import {ref,reactive,onMounted, watch, onUnmounted} from 'vue'
 import AppTable from '@/components/common/AppTable.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
 import { getCoaches, getCoach, deleteCoach, createCoach,updateCoach, uploadCoachImage } from '@/services/coachService'
@@ -8,7 +8,8 @@ import AppModal from '@/components/common/AppModal.vue'
 import CoachForm from '@/components/coaches/CoachForm.vue'
 import AppActionsMenu from '@/components/common/AppActionsMenu.vue'
 import { useRouter } from 'vue-router'
-
+import AppSelect from '@/components/common/AppSelect.vue'
+import { getTeams } from '@/services/teamService'
 
 const columns = [
     {key: 'name', label: 'Coach'},
@@ -24,10 +25,34 @@ const totalPages = ref(1)
 const loading = ref(false)
 const error = ref(null)
 const search = ref('')
+const role = ref('')
+const sort = ref('')
+const teamId = ref(null)
+
 const router = useRouter()
 const showAddCoach = ref(false)
 const showEditCoach = ref(false)
 const selectedCoach = ref(null)
+
+
+const teamOptions = reactive([])
+
+const loadTeams = async () => {
+    try {
+        const data=await getTeams()
+
+        teamOptions.splice(
+            0,
+            teamOptions.length,
+            ...data.items.map(team => ({
+                value: team.id,
+                label: team.name,
+            }))
+        )
+    } catch (err) {
+        console.error(err)
+    }
+}
 
 const loadCoaches = async () => {
     loading.value=true
@@ -38,6 +63,10 @@ const loadCoaches = async () => {
             page: currentPage.value,
             limit: pageSize.value,
             name: search.value,
+            role: role.value,
+            sort: sort.value,
+            teamId: teamId.value,
+
         })
 
         coaches.value = data.items
@@ -128,7 +157,7 @@ const saveCoach = async ({formData, imageFile}) => {
 
 let searchTimeout = null
 
-watch(search, () =>{
+watch([search,role, sort,teamId], () =>{
     currentPage.value=1
     clearTimeout(searchTimeout)
 
@@ -138,6 +167,7 @@ watch(search, () =>{
 })
 
 onMounted(()=>{
+    loadTeams()
     loadCoaches()
 })
 
@@ -177,11 +207,48 @@ onUnmounted(()=>{
             {{ error }}
         </div>
 
-        <div class="mt-6 max-w-sm">
-            <AppSearch
-                v-model="search"
-                placeholder="Search coaches..."
-            />
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+            <div class="max-w-sm flex-1">
+                <AppSearch v-model="search" placeholder="Search coaches..." />
+            </div>
+
+            <div class="w-full sm:w-56">
+                <AppSelect
+                    v-model="role"
+                    :options="[
+                        { value: '', label: 'All Roles' },
+                        { value: 'Head Coach', label: 'Head Coach' },
+                        { value: 'Assistant Coach', label: 'Assistant Coach' },
+                        { value: 'Coach', label: 'Coach' },
+                    ]"
+                    placeholder="Filter by role"
+                />
+            </div>
+
+            <div class="w-full sm:w-56">
+                <AppSelect
+                    v-model="teamId"
+                    :options="[
+                        { value: '', label: 'All Teams' },
+                        ...teamOptions,
+                    ]"
+                    placeholder="Filter by team"
+                />
+            </div>
+
+            <div class="w-full sm:w-56">
+                <AppSelect
+                    v-model="sort"
+                    :options="[
+                        { value: '', label: 'Default Order' },
+                        { value: 'name', label: 'Name: A–Z' },
+                        { value: '-name', label: 'Name: Z–A' },
+                        { value: 'created_at', label: 'Oldest First' },
+                        { value: '-created_at', label: 'Newest First' },
+                    ]"
+                    placeholder="Sort coaches"
+                />
+            </div>
         </div>
 
         <div class="relative mt-6">

@@ -21,7 +21,7 @@ export const getCoaches = async ({
         params.append('role', role)
     }
 
-    if (teamId != null) {
+    if (teamId !== null && teamId !=='') {
         params.append('team_id', teamId)
     }
 
