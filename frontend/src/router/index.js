@@ -9,6 +9,7 @@ import MatchesView from '@/views/MatchesView.vue'
 import MatchDetailsView from '@/views/MatchDetailsView.vue'
 import CoachesView from '@/views/CoachesView.vue'
 
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -53,16 +54,17 @@ const router = createRouter({
       component: () => import('@/views/MatchDetailsView.vue')
     },
 
-    {
-      path: '/matches/:matchId',
-      name: 'match-details',
-      component: () => import('@/views/MatchDetailsView.vue'),
-    },
 
     {
       path: '/coaches',
       name: 'coaches',
       component: CoachesView
+    },
+
+    {
+      path: '/coaches/:coachId', 
+      name: 'coach-details',
+      component: ()=> import('@/views/CoachDetailsView.vue')
     },
   ],
 })
