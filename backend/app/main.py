@@ -7,7 +7,7 @@ from app.routers import player_router
 from app.routers import match_router
 from app.routers import match_squad_router
 from app.routers import match_event_router
-from app.routers import coach_router
+from app.routers import coach_router, manager_router
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="Football Club Management API")
@@ -40,3 +40,4 @@ app.include_router(match_router.router)
 app.include_router(match_squad_router.router)
 app.include_router(match_event_router.router)
 app.include_router(coach_router.router)
+app.include_router(manager_router.router)

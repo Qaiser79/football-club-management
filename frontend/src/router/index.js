@@ -8,6 +8,7 @@ import PlayersView from '@/views/PlayersView.vue'
 import MatchesView from '@/views/MatchesView.vue'
 import MatchDetailsView from '@/views/MatchDetailsView.vue'
 import CoachesView from '@/views/CoachesView.vue'
+import ManagersView from '@/views/ManagersView.vue'
 
 
 const router = createRouter({
@@ -65,6 +66,18 @@ const router = createRouter({
       path: '/coaches/:coachId', 
       name: 'coach-details',
       component: ()=> import('@/views/CoachDetailsView.vue')
+    },
+
+    {
+      path: '/managers',
+      name: 'managers',
+      component: ManagersView,
+    },
+
+    {
+      path: '/managers/:managerId',
+      name: 'manager-details',
+      component: () => import('@/views/ManagerDetailsView.vue'),
     },
   ],
 })

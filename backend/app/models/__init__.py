@@ -6,3 +6,4 @@ from app.models.match import Match
 from app.models.match_squad import MatchSquad
 from app.models.match_event import MatchEvent
 from app.models.coach import Coach
+from app.models.manager import Manager

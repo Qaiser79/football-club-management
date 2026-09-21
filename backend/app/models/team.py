@@ -43,3 +43,7 @@ class Team(Base):
     coaches: Mapped[list["Coach"]] = relationship(
         back_populates="team"
     )
+
+    managers: Mapped[list["Manager"]] = relationship(
+        back_populates="team"
+    )

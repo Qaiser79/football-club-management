@@ -13,7 +13,10 @@ const navigationItems = [
     { name: 'Clubs', path: '/clubs' },
     { name: 'Teams', path: '/teams' },
     { name: 'Players', path: '/players' },
+    { name: 'Coaches', path: '/coaches'},
+    { name: 'Managers', path: '/managers'},
     { name: 'Matches', path: '/matches' },
+    
 ]
 </script>
 
