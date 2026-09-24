@@ -7,3 +7,7 @@ from app.models.match_squad import MatchSquad
 from app.models.match_event import MatchEvent
 from app.models.coach import Coach
 from app.models.manager import Manager
+from app.models.training_session import TrainingSession
+from app.models.training_session_coach import TrainingSessionCoach
+from app.models.training_session_block import TrainingSessionBlock
+from app.models.exercise import Exercise
